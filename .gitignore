@@ -1,7 +1,7 @@
 # 의존성 폴더 - 절대 GitHub에 올리지 않음
 node_modules/
 
-# 환경변수 파일 - 비밀번호가 들어있으므로 절대 올리지 않음
+# 환경변수 파일
 .env
 
 # 로그
@@ -15,3 +15,7 @@ Thumbs.db
 # 에디터
 .vscode/
 .idea/
+
+# Claude Code
+.claude/
+CLAUDE.md
