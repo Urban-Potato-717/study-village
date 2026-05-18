@@ -10,7 +10,7 @@
 - EJS 템플릿
 - express-session, connect-flash, cookie-parser, morgan
 - MySQL (mysql2/promise)
-- Socket.IO (좌석 / 공부 상태 공유용)
+- Socket.IO
 
 ## 폴더 구조
 
@@ -62,7 +62,7 @@ SESSION_SECRET=study_village_secret_key
 ### 4. MySQL 스키마 실행
 
 MySQL Workbench를 열고 `db/schema.sql` 파일 내용을 실행합니다.
-`study_village` 데이터베이스, `users`, `rooms`, `study_logs` 테이블이 생성됩니다.
+`study_village` 데이터베이스, `사용자`, `rooms`, `study_logs` 테이블이 생성됩니다.
 
 ### 5. 서버 실행
 
@@ -126,7 +126,7 @@ git push origin feature/auth
 
 GitHub에서 Pull Request를 생성합니다. 팀장(김준영)이 확인 후 main에 merge합니다.
 
-### 수정하면 안 되는 공통 파일 (김준영 관리)
+### 수정하면 안 되는 공통 파일
 
 `app.js`, `bin/www`, `package.json`, `package-lock.json`, `db/schema.sql`, `db/connection.js`, `socket/socket.js`, `.env.example`, `.gitignore`, `README.md`
 
