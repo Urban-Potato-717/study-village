@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Study Village</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Study Village</h1>
+    <nav>
+      <% if (currentUser) { %>
+        <span><%= currentUser.nickname %>님 환영합니다</span>
+        <a href="/room">학습방</a>
+        <a href="/records">내 기록</a>
+        <a href="/auth/logout">로그아웃</a>
+      <% } else { %>
+        <a href="/auth/login">로그인</a>
+        <a href="/auth/register">회원가입</a>
+      <% } %>
+    </nav>
+  </header>
+
+  <main>
+    <p>웹 기반 공동 학습 서비스입니다.</p>
+  </main>
+</body>
+</html>

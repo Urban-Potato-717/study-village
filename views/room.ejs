@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>학습방 - Study Village</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <h1>학습방</h1>
+
+  <!-- 오유진 담당: 좌석 디자인/스타일은 public/css/style.css 와 public/js/room.js -->
+  <section id="seats">
+    <% seats.forEach(function (seat) { %>
+      <button class="seat <%= seat.occupied ? 'occupied' : '' %>" data-seat-id="<%= seat.id %>">
+        좌석 <%= seat.id %>
+      </button>
+    <% }); %>
+  </section>
+
+  <!-- 임태균 담당: 공부 시작/종료 버튼 → public/js/timer.js -->
+  <section id="timer">
+    <button id="btn-start">공부 시작</button>
+    <button id="btn-end">공부 종료</button>
+    <p>현재 상태: <span id="status">대기</span></p>
+    <p>경과 시간: <span id="elapsed">00:00:00</span></p>
+  </section>
+
+  <p><a href="/">메인으로</a></p>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/room.js"></script>
+  <script src="/js/timer.js"></script>
+</body>
+</html>

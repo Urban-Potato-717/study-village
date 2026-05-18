@@ -1,0 +1,33 @@
+#!/usr/bin/env node
+
+// bin/www
+// 수업 10주차: bin/www는 서버를 실행하는 스크립트
+// app.js(서버 본체)를 require해서 http 서버로 감쌈
+
+var app  = require('../app');   // app.js를 모듈로 불러옴
+var http = require('http');     // Node.js 내장 http 모듈
+
+// 수업 10주차: process.env.PORT가 있으면 그 값, 없으면 기본값 3000
+// app.set('port', port)로 포트 값을 app 전역에 저장
+var port = process.env.PORT || '3000';
+app.set('port', port);
+
+// 수업 10주차: http.createServer(app) — app이 콜백 함수 역할
+var server = http.createServer(app);
+
+// ─── Socket.IO 연결 ───────────────────────────────
+// 같은 http 서버에 Socket.IO를 붙임
+var { Server }     = require('socket.io');
+var io             = new Server(server);
+var registerSocket = require('../socket/socket');
+registerSocket(io);
+// ─────────────────────────────────────────────────
+
+// 수업 4장: server.listen으로 포트 연결
+server.listen(port, function () {
+  console.log(port + '번 포트에서 서버 실행 중 — http://localhost:' + port);
+});
+
+server.on('error', function (error) {
+  console.error('서버 에러:', error);
+});

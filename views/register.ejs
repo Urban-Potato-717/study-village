@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>회원가입 - Study Village</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <h1>회원가입</h1>
+
+  <!-- 송정한 담당: action은 POST /auth/register -->
+  <form action="/auth/register" method="POST">
+    <label>아이디 <input type="text" name="username" required /></label>
+    <label>비밀번호 <input type="password" name="password" required /></label>
+    <label>닉네임 <input type="text" name="nickname" required /></label>
+    <button type="submit">가입하기</button>
+  </form>
+
+  <p><a href="/auth/login">로그인</a> | <a href="/">메인으로</a></p>
+</body>
+</html>

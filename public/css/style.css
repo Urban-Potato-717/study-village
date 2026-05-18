@@ -1,0 +1,39 @@
+/* public/css/style.css
+   오유진 담당 — 최소 스타일만 작성, 자유롭게 확장하세요. */
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  margin: 24px;
+  background: #fafafa;
+  color: #222;
+}
+
+header { display: flex; justify-content: space-between; align-items: center; }
+nav a { margin-left: 12px; }
+
+h1 { margin-top: 0; }
+
+form label { display: block; margin: 8px 0; }
+input { padding: 6px 8px; }
+button { padding: 8px 14px; cursor: pointer; }
+
+.error { color: #c00; }
+
+/* 좌석 */
+#seats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 480px; }
+.seat {
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+.seat.occupied { background: #ddd; color: #888; cursor: not-allowed; }
+.seat.selected { background: #cfe8ff; border-color: #4a90e2; }
+
+/* 타이머 */
+#timer { margin-top: 24px; }
+
+/* 기록 표 */
+table { border-collapse: collapse; min-width: 480px; }
+th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
