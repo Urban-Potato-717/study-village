@@ -1,7 +1,6 @@
 // app.js
 // 수업 10주차: app.js는 서버의 본체(핵심 파일)
 // 팀원 안내: 이 파일은 팀장(김준영)이 관리합니다. 직접 수정하지 말고 요청해주세요.
-
 var express      = require('express');
 var path         = require('path');
 var morgan       = require('morgan');          // 10주차: logger 미들웨어
