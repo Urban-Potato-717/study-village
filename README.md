@@ -174,11 +174,11 @@ await pool.query('INSERT INTO users (username, password, nickname) VALUES (?, ?,
 
 ## 🌿 작업 → GitHub에 올리는 방법 (매번)
 
-### 1. 작업 시작 전 — 항상 최신 main 가져오기
+### 1. 작업 시작 전 — 항상 최신 develop 가져오기
 
 ```cmd
-git checkout main
-git pull origin main
+git checkout develop
+git pull origin develop
 ```
 
 ### 2. 본인 브랜치 만들고 이동
