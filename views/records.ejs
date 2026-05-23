@@ -8,13 +8,12 @@
 <body>
   <h1>내 공부 기록</h1>
 
-  <!-- 임태균 담당: records 배열을 표로 표시 -->
   <table>
     <thead>
       <tr>
         <th>시작</th>
         <th>종료</th>
-        <th>공부 시간(초)</th>
+        <th>공부 시간(분)</th>
       </tr>
     </thead>
     <tbody>
@@ -23,9 +22,9 @@
       <% } else { %>
         <% records.forEach(function (r) { %>
           <tr>
-            <td><%= r.start_time %></td>
-            <td><%= r.end_time %></td>
-            <td><%= r.duration %></td>
+            <td><%= new Date(r.start_time).toLocaleString() %></td>
+            <td><%= r.end_time ? new Date(r.end_time).toLocaleString() : '공부 중' %></td>
+            <td><%= r.study_time ? r.study_time + '분' : '-' %></td>
           </tr>
         <% }); %>
       <% } %>
