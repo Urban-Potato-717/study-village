@@ -172,15 +172,16 @@ router.post('/end', async function (req, res, next) {
           await rng.grantCharacterAndMaybeRefreshCurrent(pool, userId, newCharacter.id);
         }
         // 다음 알 자동 지급
+        // TODO(시연): 부화 시간은 60초(데모용). 보고서대로면 600초(10분)로 되돌릴 것.
         await pool.query(
-          'INSERT INTO eggs (user_id, required_seconds, is_active) VALUES (?, 600, TRUE)',
+          'INSERT INTO eggs (user_id, required_seconds, is_active) VALUES (?, 60, TRUE)',
           [userId]
         );
         justHatched = true;
 
         eggPayload = {
           progress: 0,
-          required: 600,
+          required: 60,
           justHatched: true,
           newCharacter: newCharacter ? {
             id: newCharacter.id,

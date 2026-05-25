@@ -12,9 +12,10 @@ router.get('/', async function (req, res, next) {
     if (!req.session.user) return res.redirect('/auth/login');
     var me = req.session.user;
 
-    // 1) 방 정보
+    // 1) 방 정보 — id 고정 대신 가장 먼저 만들어진 방 1개 사용
+    //    (시드 INSERT가 다른 id로 들어갔거나 rooms가 비어있는 경우에 대비)
     var [roomRows] = await pool.query(
-      'SELECT id, name, capacity FROM rooms WHERE id = 1'
+      'SELECT id, name, capacity FROM rooms ORDER BY id ASC LIMIT 1'
     );
     if (roomRows.length === 0) {
       return res.status(500).send('학습방 데이터가 없습니다. db/schema.sql 을 실행하세요.');
@@ -69,7 +70,7 @@ router.get('/', async function (req, res, next) {
     );
     var egg = eggRows[0]
       ? { progress: eggRows[0].progress_seconds, required: eggRows[0].required_seconds }
-      : { progress: 0, required: 600 };
+      : { progress: 0, required: 60 }; // TODO(시연): 보고서대로면 600
 
     var [todayRows] = await pool.query(
       'SELECT COALESCE(SUM(duration), 0) AS sec, COUNT(*) AS cnt'

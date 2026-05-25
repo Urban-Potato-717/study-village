@@ -52,7 +52,7 @@
                                        : '대기';
     } else {
       cell.classList.remove('occupied', 'mine');
-      emojiEl.textContent = '·';
+      emojiEl.textContent = '';
       nickEl.textContent  = '좌석 ' + seatNumber;
       if (statusEl) statusEl.remove();
     }

@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS user_characters (
 CREATE TABLE IF NOT EXISTS eggs (
   id               INT      NOT NULL AUTO_INCREMENT,
   user_id          INT      NOT NULL,
-  required_seconds INT      NOT NULL DEFAULT 600,   -- 데모용 10분
+  required_seconds INT      NOT NULL DEFAULT 60,   -- demo version time, 60sec
   progress_seconds INT      NOT NULL DEFAULT 0,
   is_active        BOOLEAN  NOT NULL DEFAULT TRUE,
   created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -131,11 +131,11 @@ CREATE TABLE IF NOT EXISTS seat_occupancy (
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '좌석 점유 상태';
 
 -- ─── users 컬럼 확장 (현재 캐릭터 / 누적 공부 시간) ──
--- 이미 컬럼이 있으면 MySQL이 "Duplicate column name" 에러를 내는데, 그건 정상.
--- 처음 한 번만 실행하면 됨. 다시 실행 시 이 두 줄은 무시(주석 처리)해도 됨.
-ALTER TABLE users
-  ADD COLUMN current_character_id INT NULL,
-  ADD COLUMN total_study_seconds  INT NOT NULL DEFAULT 0;
+-- 이미 컬럼이 있으면 MySQL의 "Duplicate column name" 에러.
+-- 처음 한 번만 실행하면 됨. 다시 실행 시 이 두 줄은 무시(주석 처리).
+-- ALTER TABLE users
+--  ADD COLUMN current_character_id INT NULL,
+--  ADD COLUMN total_study_seconds  INT NOT NULL DEFAULT 0;
 
 -- ─── 캐릭터 시드 5종 ─────────────────────
 -- WHERE NOT EXISTS 로 멱등성 확보

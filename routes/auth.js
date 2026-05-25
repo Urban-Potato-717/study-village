@@ -85,8 +85,9 @@ router.post('/register', async function (req, res, next) {
 
         // ─── MVP: 첫 알 1개 + N등급 캐릭터 1장 자동 지급 ───
         // 알: 활성(is_active=TRUE) 상태로 즉시 등록 → 첫 공부 종료부터 부화 진행도 증가
+        // TODO(시연): 부화 시간은 60초(데모용). 보고서대로면 600초(10분)로 되돌릴 것.
         await pool.query(
-            'INSERT INTO eggs (user_id, required_seconds, is_active) VALUES (?, 600, TRUE)',
+            'INSERT INTO eggs (user_id, required_seconds, is_active) VALUES (?, 60, TRUE)',
             [newUserId]
         );
 
