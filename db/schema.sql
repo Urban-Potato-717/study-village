@@ -11,14 +11,19 @@ CREATE DATABASE IF NOT EXISTS study_village
   COLLATE utf8mb4_unicode_ci;
 USE study_village;
 
--- ─── 사용자 테이블 (송정한 담당) ─────────────────────────
+-- ─── 사용자 테이블 (송정한 담당, MVP 컬럼 확장은 김준영) ─────
 -- 수업: id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(id)
+-- MVP 확장 컬럼:
+--   current_character_id : 현재 선택한 캐릭터 (도감에서 변경 — 미구현)
+--   total_study_seconds  : 누적 공부 시간 (초)
 CREATE TABLE IF NOT EXISTS users (
-  id         INT          NOT NULL AUTO_INCREMENT,
-  username   VARCHAR(20)  NOT NULL UNIQUE,                 -- 로그인 아이디 (중복 불가)
-  password   VARCHAR(200) NOT NULL,                        -- 해시된 비밀번호
-  nickname   VARCHAR(20)  NOT NULL,
-  created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 가입 시각 자동 기록
+  id                   INT          NOT NULL AUTO_INCREMENT,
+  username             VARCHAR(20)  NOT NULL UNIQUE,                 -- 로그인 아이디 (중복 불가)
+  password             VARCHAR(200) NOT NULL,                        -- 해시된 비밀번호
+  nickname             VARCHAR(20)  NOT NULL,
+  current_character_id INT          NULL,                            -- MVP: 도감에서 선택한 캐릭터
+  total_study_seconds  INT          NOT NULL DEFAULT 0,               -- MVP: 누적 공부 시간(초)
+  created_at           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 가입 시각 자동 기록
   PRIMARY KEY (id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '사용자 정보';
 
@@ -130,9 +135,10 @@ CREATE TABLE IF NOT EXISTS seat_occupancy (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '좌석 점유 상태';
 
--- ─── users 컬럼 확장 (현재 캐릭터 / 누적 공부 시간) ──
--- 이미 컬럼이 있으면 MySQL의 "Duplicate column name" 에러.
--- 처음 한 번만 실행하면 됨. 다시 실행 시 이 두 줄은 무시(주석 처리).
+-- ─── users 컬럼 확장 (마이그레이션용) ──────────────────────
+-- 새 DB에는 위 CREATE TABLE users 가 이미 두 컬럼을 포함하고 있으므로 불필요.
+-- 단, MVP 이전에 만들어진 기존 users 테이블에 컬럼이 없는 경우에만
+-- 아래 두 줄의 주석을 해제하여 1회 실행할 것.
 -- ALTER TABLE users
 --  ADD COLUMN current_character_id INT NULL,
 --  ADD COLUMN total_study_seconds  INT NOT NULL DEFAULT 0;
