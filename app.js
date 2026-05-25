@@ -3,10 +3,10 @@
 // 팀원 안내: 이 파일은 팀장(김준영)이 관리합니다. 직접 수정하지 말고 요청해주세요.
 var express      = require('express');
 var path         = require('path');
-var morgan       = require('morgan');          // 10주차: logger 미들웨어
-var cookieParser = require('cookie-parser');   // 10주차: 쿠키 파싱 미들웨어
-var session      = require('express-session'); // 11주차: 세션 관리 미들웨어
-var flash        = require('connect-flash');   // 11주차: 일회성 메시지 미들웨어
+var morgan       = require('morgan');          // logger 미들웨어
+var cookieParser = require('cookie-parser');   // 쿠키 파싱 미들웨어
+var session      = require('express-session'); // 세션 관리 미들웨어
+var flash        = require('connect-flash');   // 일회성 메시지 미들웨어
 require('dotenv').config();                    // .env 파일 로드
 
 // ① express 패키지를 호출하여 app 객체 생성 (10주차 슬라이드 13)
