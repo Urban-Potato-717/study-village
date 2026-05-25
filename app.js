@@ -57,17 +57,19 @@ app.use(function (req, res, next) {
 // ─────────────────────────────────────────
 // 라우터 연결 (11주차: Router 객체로 라우팅 분리)
 // ─────────────────────────────────────────
-var indexRouter   = require('./routes/index');
-var authRouter    = require('./routes/auth');
-var roomRouter    = require('./routes/room');
-var studyRouter   = require('./routes/study');
-var recordsRouter = require('./routes/records');
+var indexRouter      = require('./routes/index');
+var authRouter       = require('./routes/auth');
+var roomRouter       = require('./routes/room');
+var studyRouter      = require('./routes/study');
+var recordsRouter    = require('./routes/records');
+var charactersRouter = require('./routes/characters');
 
-app.use('/',        indexRouter);
-app.use('/auth',    authRouter);
-app.use('/room',    roomRouter);
-app.use('/study',   studyRouter);
-app.use('/records', recordsRouter);
+app.use('/',           indexRouter);
+app.use('/auth',       authRouter);
+app.use('/room',       roomRouter);
+app.use('/study',      studyRouter);
+app.use('/records',    recordsRouter);
+app.use('/characters', charactersRouter);
 
 // Socket.IO 연결은 bin/www에서 처리
 

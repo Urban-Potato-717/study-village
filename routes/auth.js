@@ -6,6 +6,8 @@ var express = require('express');
 var router  = express.Router();
 var pool = require('../db/connection'); // 12주차: 필요 시 주석 해제하여 DB 사용
 var crypto  = require('crypto');
+// MVP: 회원가입 시 알 지급 + N등급 캐릭터 자동 추첨에 사용
+var rng = require('../lib/rng');
 
 // ─── 송정한 담당 구현 영역 ────────────────────────────────
 
@@ -75,10 +77,24 @@ router.post('/register', async function (req, res, next) {
         const hashedPassword = crypto.createHash('sha512').update(password).digest('base64');
 
         // 3) INSERT INTO users로 DB에 새 회원 저장
-        await pool.query(
+        const [insertResult] = await pool.query(
             'INSERT INTO users (username, password, nickname) VALUES (?, ?, ?)',
             [username, hashedPassword, nickname]
         );
+        const newUserId = insertResult.insertId;
+
+        // ─── MVP: 첫 알 1개 + N등급 캐릭터 1장 자동 지급 ───
+        // 알: 활성(is_active=TRUE) 상태로 즉시 등록 → 첫 공부 종료부터 부화 진행도 증가
+        await pool.query(
+            'INSERT INTO eggs (user_id, required_seconds, is_active) VALUES (?, 600, TRUE)',
+            [newUserId]
+        );
+
+        // N등급 캐릭터에서 가중치 랜덤 1장 추첨 → 도감 등록 + 현재 캐릭터로 세팅
+        const starter = await rng.pickWeightedCharacter(pool, { rarityIn: ['N'] });
+        if (starter) {
+            await rng.grantCharacterAndMaybeRefreshCurrent(pool, newUserId, starter.id);
+        }
 
         // 4) 성공 시 /auth/login 으로 리다이렉트
         res.redirect('/auth/login');

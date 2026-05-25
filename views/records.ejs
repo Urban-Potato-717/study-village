@@ -5,33 +5,75 @@
   <title>내 공부 기록 - Study Village</title>
   <link rel="stylesheet" href="/css/style.css" />
 </head>
-<body>
-  <h1>내 공부 기록</h1>
+<body class="village-bg">
+  <header class="page-header">
+    <h1>내 공부 기록</h1>
+    <nav>
+      <a href="/">메인</a>
+      <a href="/room">학습방</a>
+      <a href="/characters">내 도감</a>
+    </nav>
+  </header>
 
-  <!-- 임태균 담당: records 배열을 표로 표시 -->
-  <table>
-    <thead>
-      <tr>
-        <th>시작</th>
-        <th>종료</th>
-        <th>공부 시간(초)</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% if (records.length === 0) { %>
-        <tr><td colspan="3">아직 기록이 없습니다.</td></tr>
-      <% } else { %>
-        <% records.forEach(function (r) { %>
-          <tr>
-            <td><%= r.start_time %></td>
-            <td><%= r.end_time %></td>
-            <td><%= r.duration %></td>
-          </tr>
-        <% }); %>
-      <% } %>
-    </tbody>
-  </table>
+  <!-- 카드 4개: 오늘 분 / 세션 / 누적 / 도감 % -->
+  <section class="stat-cards">
+    <div class="stat-card">
+      <div class="stat-label">오늘 공부</div>
+      <div class="stat-value"><%= today.minutes %><span>분</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">오늘 세션</div>
+      <div class="stat-value"><%= today.sessions %><span>회</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">누적 공부</div>
+      <div class="stat-value"><%= totalMinutes %><span>분</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">도감 진행</div>
+      <div class="stat-value"><%= dex.percent %><span>%</span></div>
+      <div class="stat-sub"><%= dex.owned %> / <%= dex.total %></div>
+    </div>
+  </section>
 
-  <p><a href="/">메인으로</a></p>
+  <!-- 활성 알 진행도 -->
+  <section class="panel">
+    <h2>부화 진행도</h2>
+    <% var pct = egg.required > 0 ? Math.min(100, Math.floor((egg.progress / egg.required) * 100)) : 0; %>
+    <div class="progress">
+      <div class="progress-fill" style="width: <%= pct %>%"></div>
+    </div>
+    <p class="progress-text">
+      <%= Math.floor(egg.progress / 60) %>분 / <%= Math.floor(egg.required / 60) %>분
+      (<%= pct %>%)
+    </p>
+  </section>
+
+  <!-- 최근 세션 -->
+  <section class="panel">
+    <h2>최근 세션</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>시작</th>
+          <th>종료</th>
+          <th>공부 시간</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (records.length === 0) { %>
+          <tr><td colspan="3">아직 기록이 없습니다. 좌석에 앉아 공부를 시작해 보세요!</td></tr>
+        <% } else { %>
+          <% records.forEach(function (r) { %>
+            <tr>
+              <td><%= r.start_time %></td>
+              <td><%= r.end_time %></td>
+              <td><%= Math.floor((r.duration || 0) / 60) %>분 <%= (r.duration || 0) % 60 %>초</td>
+            </tr>
+          <% }); %>
+        <% } %>
+      </tbody>
+    </table>
+  </section>
 </body>
 </html>

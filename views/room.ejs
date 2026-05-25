@@ -2,30 +2,112 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>학습방 - Study Village</title>
+  <title><%= room.name %> - Study Village</title>
   <link rel="stylesheet" href="/css/style.css" />
 </head>
-<body>
-  <h1>학습방</h1>
+<body class="village-bg">
+  <header class="page-header">
+    <h1>공부 마을 — <%= room.name %></h1>
+    <nav>
+      <a href="/">메인</a>
+      <a href="/records">내 기록</a>
+      <a href="/characters">내 도감</a>
+      <a href="/auth/logout">로그아웃</a>
+    </nav>
+  </header>
 
-  <!-- 오유진 담당: 좌석 디자인/스타일은 public/css/style.css 와 public/js/room.js -->
-  <section id="seats">
-    <% seats.forEach(function (seat) { %>
-      <button class="seat <%= seat.occupied ? 'occupied' : '' %>" data-seat-id="<%= seat.id %>">
-        좌석 <%= seat.id %>
-      </button>
-    <% }); %>
-  </section>
+  <main class="room-layout">
+    <!-- 좌석 영역: 3×4 그리드 -->
+    <section id="seats" class="seats-grid"
+             data-room-id="<%= room.id %>"
+             data-user-id="<%= me.id %>"
+             data-user-emoji="<%= me.emoji %>"
+             data-user-nickname="<%= me.nickname %>">
+      <% seats.forEach(function (seat) { %>
+        <div class="seat-cell <%= seat.occupied ? 'occupied' : '' %> <%= seat.user && seat.user.isMe ? 'mine' : '' %>"
+             data-seat-number="<%= seat.seatNumber %>">
+          <div class="seat-emoji"><%= seat.user ? seat.user.emoji : '' %></div>
+          <div class="seat-nick">
+            <%= seat.user ? seat.user.nickname : ('좌석 ' + seat.seatNumber) %>
+          </div>
+          <% if (seat.status) { %>
+            <div class="seat-status status-<%= seat.status %>">
+              <%= seat.status === 'focusing' ? '집중 중'
+                : seat.status === 'resting'  ? '휴식 중'
+                : seat.status === 'away'     ? '이탈'
+                                             : '대기' %>
+            </div>
+          <% } %>
+        </div>
+      <% }); %>
+    </section>
 
-  <!-- 임태균 담당: 공부 시작/종료 버튼 → public/js/timer.js -->
-  <section id="timer">
-    <button id="btn-start">공부 시작</button>
-    <button id="btn-end">공부 종료</button>
-    <p>현재 상태: <span id="status">대기</span></p>
-    <p>경과 시간: <span id="elapsed">00:00:00</span></p>
-  </section>
+    <!-- 사이드바 -->
+    <aside class="sidebar">
+      <!-- 방 정보 -->
+      <div class="panel">
+        <div class="panel-row">
+          <span class="panel-label">현재 인원</span>
+          <span class="panel-value">
+            <%= seats.filter(function (s) { return s.occupied; }).length %>
+            / <%= room.capacity %>명
+          </span>
+        </div>
+      </div>
 
-  <p><a href="/">메인으로</a></p>
+      <!-- 내 캐릭터 + 시작/종료 -->
+      <div class="panel my-panel">
+        <div class="my-character">
+          <div class="my-emoji"><%= me.emoji %></div>
+          <div class="my-info">
+            <div class="my-nick"><%= me.nickname %></div>
+            <div class="my-character-name">
+              <%= me.characterName ? me.characterName : '내 캐릭터' %>
+            </div>
+          </div>
+        </div>
+        <button id="btn-start" class="btn-primary" disabled>
+          공부 시작하기
+        </button>
+        <button id="btn-end" class="btn-secondary" style="display: none;">
+          공부 종료
+        </button>
+        <p class="hint">상태: <span id="status">대기</span></p>
+        <p class="hint">경과 시간: <span id="elapsed">00:00:00</span></p>
+        <p class="hint" id="seat-hint">좌석을 먼저 선택하세요.</p>
+      </div>
+
+      <!-- 알 부화 진행도 -->
+      <div class="panel">
+        <h3>부화 진행도</h3>
+        <% var pct = egg.required > 0 ? Math.min(100, Math.floor((egg.progress / egg.required) * 100)) : 0; %>
+        <div class="progress">
+          <div class="progress-fill" id="egg-fill" style="width: <%= pct %>%"></div>
+        </div>
+        <p class="progress-text" id="egg-text">
+          <%= Math.floor(egg.progress / 60) %>분 / <%= Math.floor(egg.required / 60) %>분
+          (<%= pct %>%)
+        </p>
+      </div>
+
+      <!-- 오늘의 기록 -->
+      <div class="panel">
+        <h3>오늘의 기록</h3>
+        <div class="panel-row">
+          <span class="panel-label">오늘 공부</span>
+          <span class="panel-value"><%= today.minutes %>분</span>
+        </div>
+        <div class="panel-row">
+          <span class="panel-label">오늘 세션</span>
+          <span class="panel-value"><%= today.sessions %>회</span>
+        </div>
+        <div class="panel-row">
+          <span class="panel-label">누적 공부</span>
+          <span class="panel-value"><%= me.totalMinutes %>분</span>
+        </div>
+      </div>
+    </aside>
+  </main>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/room.js"></script>

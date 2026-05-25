@@ -1,39 +1,249 @@
 /* public/css/style.css
-   오유진 담당 — 최소 스타일만 작성, 자유롭게 확장하세요. */
+   담당: 오유진(원본), 김준영(MVP 통합)
+   공부 마을 테마 — 베이지 배경, 흰 카드, 노란 강조 */
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  margin: 24px;
-  background: #fafafa;
-  color: #222;
+:root {
+  --beige: #FAF3E0;
+  --beige-dark: #EFE2C4;
+  --paper: #FFFFFF;
+  --ink: #2A2A2A;
+  --muted: #8A8A8A;
+  --accent: #F4C430;
+  --accent-dark: #DDA60B;
+  --danger: #E25C5C;
+  --shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Pretendard", sans-serif;
+  margin: 0;
+  padding: 24px;
+  background: #fafafa;
+  color: var(--ink);
+}
+
+body.village-bg {
+  background: var(--beige);
+  background-image:
+    radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  margin-bottom: 20px;
+  background: var(--paper);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+.page-header h1 { margin: 0; font-size: 20px; }
+.page-header nav a {
+  margin-left: 14px;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 500;
+}
+.page-header nav a:hover { color: var(--accent-dark); }
+
+/* 기존 호환 */
 header { display: flex; justify-content: space-between; align-items: center; }
 nav a { margin-left: 12px; }
-
 h1 { margin-top: 0; }
-
 form label { display: block; margin: 8px 0; }
 input { padding: 6px 8px; }
 button { padding: 8px 14px; cursor: pointer; }
-
 .error { color: #c00; }
 
-/* 좌석 */
-#seats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 480px; }
-.seat {
-  padding: 24px;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 16px;
+/* ─── 학습방 레이아웃 ─────────────────────────────── */
+.room-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  align-items: start;
 }
-.seat.occupied { background: #ddd; color: #888; cursor: not-allowed; }
-.seat.selected { background: #cfe8ff; border-color: #4a90e2; }
 
-/* 타이머 */
-#timer { margin-top: 24px; }
+.seats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  padding: 18px;
+  background: var(--paper);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
 
-/* 기록 표 */
-table { border-collapse: collapse; min-width: 480px; }
-th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
+.seat-cell {
+  aspect-ratio: 1;
+  background: #FCFCFC;
+  border: 2px dashed #D8D8D8;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-align: center;
+  padding: 8px;
+  transition: transform 0.1s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.seat-cell:hover { transform: translateY(-2px); border-color: var(--accent); }
+.seat-cell.occupied { background: #FFF7DC; border-style: solid; border-color: #E8C97A; cursor: default; }
+.seat-cell.mine     { border-color: var(--accent-dark); background: #FFE9A8; }
+.seat-cell.selected { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.seat-emoji { font-size: 2.4rem; line-height: 1; }
+.seat-nick  { margin-top: 6px; font-size: 12px; color: var(--ink); font-weight: 600; }
+.seat-status {
+  margin-top: 4px;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #EEE;
+  color: var(--muted);
+}
+.seat-status.status-focusing { background: #FFE08A; color: #8A5B00; }
+.seat-status.status-resting  { background: #C8E6FF; color: #1E5C9C; }
+.seat-status.status-away     { background: #F5C8C8; color: #8A2C2C; }
+
+/* ─── 사이드바 ─────────────────────────────────────── */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: sticky;
+  top: 24px;
+}
+
+.panel {
+  background: var(--paper);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+.panel h2, .panel h3 { margin: 0 0 10px; font-size: 15px; }
+
+.panel-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 13px;
+}
+.panel-label { color: var(--muted); }
+.panel-value { font-weight: 600; }
+
+.my-panel { display: flex; flex-direction: column; gap: 10px; }
+.my-character { display: flex; align-items: center; gap: 12px; }
+.my-emoji { font-size: 2.2rem; }
+.my-info { line-height: 1.3; }
+.my-nick { font-weight: 700; }
+.my-character-name { font-size: 12px; color: var(--muted); }
+
+.btn-primary {
+  width: 100%;
+  background: var(--accent);
+  color: var(--ink);
+  border: none;
+  border-radius: 10px;
+  padding: 12px 0;
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: 0 2px 0 var(--accent-dark);
+}
+.btn-primary:disabled {
+  background: #E8E8E8;
+  color: var(--muted);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.btn-secondary {
+  width: 100%;
+  background: #fff;
+  color: var(--ink);
+  border: 2px solid var(--accent-dark);
+  border-radius: 10px;
+  padding: 10px 0;
+  font-weight: 600;
+}
+.hint { margin: 4px 0; font-size: 12px; color: var(--muted); }
+
+/* ─── 진행 바 ─────────────────────────────────────── */
+.progress {
+  width: 100%;
+  height: 12px;
+  background: #EFEFEF;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+  transition: width 0.3s ease;
+}
+.progress-text { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
+
+/* ─── 기록 카드 ───────────────────────────────────── */
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--paper);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 18px;
+  text-align: center;
+}
+.stat-label { font-size: 12px; color: var(--muted); }
+.stat-value { font-size: 28px; font-weight: 700; margin-top: 4px; }
+.stat-value span { font-size: 14px; color: var(--muted); margin-left: 2px; }
+.stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* ─── 기록 표 ─────────────────────────────────────── */
+table { border-collapse: collapse; width: 100%; }
+th, td { border-bottom: 1px solid #EEE; padding: 8px 12px; text-align: left; font-size: 13px; }
+th { background: #FAF7EE; color: var(--muted); font-weight: 600; }
+
+/* ─── 도감 그리드 ─────────────────────────────────── */
+.character-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+}
+.character-card {
+  background: var(--paper);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 18px;
+  text-align: center;
+  transition: transform 0.1s ease;
+}
+.character-card:hover { transform: translateY(-2px); }
+.character-card.locked { opacity: 0.25; filter: grayscale(1); }
+.character-emoji { font-size: 3rem; }
+.character-name { margin-top: 8px; font-weight: 600; }
+.character-rarity {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.rarity-N  { background: #EEE; color: #555; }
+.rarity-R  { background: #C8E6FF; color: #1E5C9C; }
+.rarity-SR { background: #FFE08A; color: #8A5B00; }
+
+/* ─── 반응형 (간단) ───────────────────────────────── */
+@media (max-width: 900px) {
+  .room-layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; }
+  .seats-grid { grid-template-columns: repeat(3, 1fr); }
+  .stat-cards { grid-template-columns: repeat(2, 1fr); }
+}
