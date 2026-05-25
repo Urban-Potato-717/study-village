@@ -2,7 +2,7 @@
 
 웹서버프로그래밍 팀 프로젝트 — 웹 기반 공동 학습 서비스.
 
-수업(정복래 교수님 10~12주차)의 Express + EJS + MySQL 패턴을 그대로 따릅니다.
+수업의 Express + EJS + MySQL 패턴을 그대로 따릅니다.
 
 ## 기술 스택
 
@@ -22,6 +22,7 @@ study-village/
 ├─ views/              EJS 템플릿        ← 본인이 맡은 화면을 여기서 수정
 ├─ public/             정적 파일 (css, js, images)
 ├─ db/                 connection.js (mysql2 pool) + schema.sql
+├─ lib/                공용 헬퍼 (rng.js — 캐릭터 가중치 추첨/도감 등록)
 └─ socket/socket.js    Socket.IO 이벤트
 ```
 
@@ -116,17 +117,22 @@ SESSION_SECRET=study_village_secret_key
 3. 상단 메뉴 **File > Open SQL Script…** → `db/schema.sql` 선택
 4. ⚡ **번개 아이콘**(Execute) 클릭
 5. 하단 Action Output에 전부 ✓(초록색) 뜨면 성공
-6. 왼쪽 SCHEMAS 패널 새로고침 → `study_village` 안에 `users`, `rooms`, `study_logs` 3개 테이블 보이면 OK
+6. 왼쪽 SCHEMAS 패널 새로고침 → `study_village` 안에 7개 테이블이 보이면 OK
+   - 기존: `users`, `rooms`, `study_logs`
+   - MVP 추가: `characters`, `user_characters`, `eggs`, `seat_occupancy`
 
 확인 쿼리:
 
 ```sql
 USE study_village;
-SHOW TABLES;
-SELECT * FROM rooms;
+SHOW TABLES;                       -- 7개
+SELECT name, capacity FROM rooms;  -- "1번 학습방" / capacity 12
+SELECT COUNT(*) FROM characters;   -- 5
 ```
 
-`1번 학습방` 한 줄이 나오면 끝.
+위처럼 나오면 끝.
+
+> 회원가입을 하면 첫 알 1개와 N등급 캐릭터 1장이 자동 지급됩니다. 그래서 가입 직후 바로 학습방에서 좌석 점유 → 공부 시작이 가능합니다.
 
 ### 8. 서버 실행해보기
 
@@ -144,10 +150,10 @@ npm run dev
 
 | 담당 | 경로 | 수정할 파일 |
 |---|---|---|
-| 송정한 | `/auth/login`, `/auth/register`, `/auth/logout` | `routes/auth.js`, `views/login.ejs`, `views/register.ejs` |
+| 송정한 | `/auth/login`, `/auth/register`, `/auth/logout`, `/auth/withdraw` | `routes/auth.js`, `views/login.ejs`, `views/register.ejs` |
 | 임태균 | `/study/start`, `/study/end`, `/records` | `routes/study.js`, `routes/records.js`, `views/records.ejs` |
-| 오유진 | `/room` 화면 | `views/room.ejs` (라우터는 김준영) |
-| 김준영(팀장) | 메인 + 인프라 + `/room` 라우터 | `routes/index.js`, `routes/room.js`, `app.js`, `bin/www`, `db/*`, `socket/*` |
+| 오유진 | `/room` 화면 + 마을 테마 | `views/room.ejs`, `public/js/room.js`, `public/css/style.css` (라우터는 김준영) |
+| 김준영(팀장) | 메인 + 인프라 + `/room` 라우터 + 캐릭터/도감 | `routes/index.js`, `routes/room.js`, `routes/characters.js`, `views/characters.ejs`, `app.js`, `bin/www`, `db/*`, `socket/*`, `lib/*` |
 
 ### DB 접근 예시 (송정한·임태균·오유진 참고)
 
@@ -245,10 +251,11 @@ git push origin feature/auth
 
 1. 본인 저장소 페이지([https://github.com/Urban-Potato-717/study-village](https://github.com/Urban-Potato-717/study-village)) 들어가기
 2. 노란 배너 `Compare & pull request` 클릭
-3. 제목과 설명 적고 **Create pull request**
-4. 팀장(김준영)이 확인 후 main에 merge
+3. **base 브랜치를 `develop` 으로 변경** (기본값이 main일 수 있으니 주의)
+4. 제목과 설명 적고 **Create pull request**
+5. 팀장(김준영)이 확인 후 develop에 merge → develop에서 정상 작동이 확인되면 별도로 main에 promote
 
-merge가 끝나면 다시 1번부터 시작 (`git checkout main → git pull`).
+merge가 끝나면 다시 1번부터 시작 (`git checkout develop → git pull`).
 
 ---
 
@@ -256,7 +263,7 @@ merge가 끝나면 다시 1번부터 시작 (`git checkout main → git pull`).
 
 아래 파일은 절대 직접 수정하지 마세요. 변경이 필요하면 **카톡으로 팀장에게 요청**:
 
-`app.js`, `bin/www`, `package.json`, `package-lock.json`, `db/schema.sql`, `db/connection.js`, `socket/socket.js`, `.env.example`, `.gitignore`, `README.md`
+`app.js`, `bin/www`, `package.json`, `package-lock.json`, `db/schema.sql`, `db/connection.js`, `socket/socket.js`, `lib/*`, `routes/characters.js`, `views/characters.ejs`, `.env.example`, `.gitignore`, `README.md`
 
 ---
 
@@ -275,5 +282,6 @@ merge가 끝나면 다시 1번부터 시작 (`git checkout main → git pull`).
 | `ER_ACCESS_DENIED_ERROR` | `.env`의 MySQL 비밀번호 틀림 | `.env` 다시 확인 |
 | `ECONNREFUSED` | MySQL 서비스가 안 켜져 있음 | `Get-Service MySQL*` 확인, 꺼져있으면 `Start-Service MySQL80` |
 | `ER_BAD_DB_ERROR` | `study_village` DB가 없음 | Workbench에서 `db/schema.sql` 다시 실행 |
+| `Duplicate column name 'current_character_id'` | `db/schema.sql` 재실행 시 `ALTER TABLE users` 가 두 번째로 실행됨 | 해당 ALTER 두 줄만 주석 처리하고 나머지 다시 실행 |
 | `EADDRINUSE` | 3000번 포트가 이미 사용 중 | 다른 npm 서버가 켜져있는지 확인 후 종료 |
-| push할 때 `rejected` | 원격에 새 커밋이 있음 | `git pull origin main --no-rebase` 후 다시 push |
+| push할 때 `rejected` | 원격에 새 커밋이 있음 | `git pull origin develop --no-rebase` 후 다시 push |
