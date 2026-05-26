@@ -1,5 +1,5 @@
 // db/connection.js
-// 수업 12주차 7장: Node.js에서 mysql2 패키지로 DB 연결
+// Node.js에서 mysql2 패키지로 DB 연결
 // mysql2/promise 기반 connection pool 사용
 
 var mysql = require('mysql2/promise');

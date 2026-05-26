@@ -1,5 +1,5 @@
 // routes/characters.js
-// 담당: 김준영 (팀장 MVP 통합)
+// (MVP 통합)
 // 도감 페이지 — 전체 캐릭터 + 획득 여부
 
 var express = require('express');

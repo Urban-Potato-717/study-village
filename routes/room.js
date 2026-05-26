@@ -1,5 +1,4 @@
 // routes/room.js
-// 담당: 김준영(라우터), 오유진(뷰)
 // 학습방/좌석 라우터 — MVP
 
 var express = require('express');

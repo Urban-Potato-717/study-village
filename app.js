@@ -1,39 +1,31 @@
-// app.js: 서버 본체(핵심 파일)
-// 이 파일은 팀장이 관리합니다. 필요 시 본인 브랜치에서만 수정 ㄱㄱ
-var express      = require('express');
-var path         = require('path');
+// 해당 파일은 팀장이 관리.
+var express      = require('express');         // exrpess FrameWork. 
+var path         = require('path');            // 경로
 var morgan       = require('morgan');          // logger 미들웨어
-var cookieParser = require('cookie-parser');   // 쿠키 파싱 미들웨어
-var session      = require('express-session'); // 세션 관리 미들웨어
+var cookieParser = require('cookie-parser');   // 쿠키 파싱 미들웨어 (req.cookies.이름)
+var session      = require('express-session'); // 세션 관리 미들웨어 (로그인 상태유지)
 var flash        = require('connect-flash');   // 일회성 메시지 미들웨어
-require('dotenv').config();                    // .env 파일 로드
+require('dotenv').config();                    // .env 파일 로드 (process.env.xxx)
 
-// express 패키지를 호출하여 app 객체 생성 
 var app = express();
 
-// app.set으로 익스프레스 옵션 설정 
-// "app.set(키, 값)으로 데이터를 저장하고, app.get(키)로 가져올 수 있음"
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs'); // EJS 템플릿 엔진 (10주차 6.5절)
+//* app.set - 설정 저장 
+// "app.set(키, 값)으로 데이터 저장, app.get(키)로 가져올 수 있음"
+app.set('views', path.join(__dirname, 'views')); // 템플릿 파일이 'views/' 폴더에 있다.
+app.set('view engine', 'ejs');                   // EJS 템플릿 엔진 선언
 
-// app.use로 미들웨어 연결
-// "next()로 다음 미들웨어로 넘어감 — 라우터와 에러 핸들러도 미들웨어"
+//* app.use - 미들웨어 장착
+// 요청(req) → [미들웨어1] → [미들웨어2] → [라우터] → 응답(res)
+app.use(morgan('dev')); // HTTP 요청 로그를 콘솔에 출력
 
-// morgan: HTTP 요청 로그를 콘솔에 출력
-app.use(morgan('dev'));
+//! paser: 브라우저가 보낸 요청 데이터를 Express가 읽기 좋게 바꿔주는 미들웨어
+app.use(express.json());                            // JSON body를 req.body로 읽게 해줌
+app.use(express.urlencoded({ extended: false }));   // HTML form body를 req.body로 읽게 해줌
+app.use(cookieParser(process.env.SESSION_SECRET));  // Cookie 헤더를 req.cookies로 읽게 해줌
 
-// body-parser: req.body 사용 (json + urlencoded)
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, 'public'))); // static: public 폴더를 정적 파일로 제공
 
-// cookie-parser: req.cookies 사용
-app.use(cookieParser(process.env.SESSION_SECRET));
-
-// static: public 폴더를 정적 파일로 제공
-app.use(express.static(path.join(__dirname, 'public')));
-
-// express-session: 세션 관리 
-app.use(session({
+app.use(session({           // express-session: 서버가 특정 브라우저/사용자에 대해 기억해두는 임시 저장소
   resave: false,            // 수정사항 없으면 다시 저장하지 않음
   saveUninitialized: false, // 저장할 내역이 없으면 세션을 만들지 않음
   secret: process.env.SESSION_SECRET || 'study-village-secret',
@@ -44,39 +36,40 @@ app.use(session({
 }));
 
 // connect-flash: 일회성 메시지 
-// "cookie-parser와 express-session 아래에 위치(의존 관계)"
+// "무조건 cookie-parser와 express-session 아래에 위치(의존 관계)"
 app.use(flash());
 
-// 모든 뷰에서 현재 로그인 사용자(currentUser)에 접근 가능
+// 모든 View(EJS)에서 현재 로그인 사용자(currentUser)에 접근 
+// 모든 view에서 currentUser라는 이름으로 쓸 수 있게 복사해주는 미들웨어
 app.use(function (req, res, next) {
   res.locals.currentUser = req.session.user || null;
   next();
 });
 
-
 //* 라우터 연결 (Router 객체로 라우팅 분리)
-var indexRouter      = require('./routes/index');
-var authRouter       = require('./routes/auth');
-var roomRouter       = require('./routes/room');
-var studyRouter      = require('./routes/study');
-var recordsRouter    = require('./routes/records');
+var indexRouter = require('./routes/index');
+var authRouter = require('./routes/auth');
+var roomRouter = require('./routes/room');
+var studyRouter = require('./routes/study');
+var recordsRouter = require('./routes/records');
 var charactersRouter = require('./routes/characters');
 
-app.use('/',           indexRouter);
-app.use('/auth',       authRouter);
-app.use('/room',       roomRouter);
-app.use('/study',      studyRouter);
-app.use('/records',    recordsRouter);
+// 가져온 라우터를 Express 앱의 특정 주소에 붙이는 작업
+app.use('/', indexRouter);
+app.use('/auth', authRouter); // /auth로 시작하는 요청은 authRouter가 처리하게 하겠다
+app.use('/room', roomRouter);
+app.use('/study', studyRouter);
+app.use('/records', recordsRouter);
 app.use('/characters', charactersRouter);
 
 //! Socket.IO 연결은 bin/www에서 처리
 
-//* 404 처리 미들웨어 (10주차)
+// 404 처리 미들웨어
 app.use(function (req, res, next) {
   res.status(404).send('페이지를 찾을 수 없습니다.');
 });
 
-// *에러 핸들러 : 매개변수가 (err, req, res, next) 4개
+// 에러 핸들러 : 매개변수가 (err, req, res, next) 4개
 app.use(function (err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error   = req.app.get('env') === 'development' ? err : {};
@@ -84,5 +77,5 @@ app.use(function (err, req, res, next) {
   res.render('error');
 });
 
-// app 객체를 모듈로 만듦 → bin/www에서 require('../app')으로 불러옴
+// app 객체를 모듈로
 module.exports = app;
