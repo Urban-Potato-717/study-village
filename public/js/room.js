@@ -118,7 +118,7 @@
 
     setSelectedSeat(seatNumber); // 선택 표시
 
-    if (socket) {                // 서버에 전송
+    if (socket) {  // if는 socket 연결이 만들어졌는지 검증. 서버에 전송 (emit)
       socket.emit('selectSeat', {
         roomId: roomId,
         seatNumber: seatNumber,
