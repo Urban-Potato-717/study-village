@@ -2,7 +2,7 @@
 
 웹서버프로그래밍 팀 프로젝트 — 웹 기반 공동 학습 서비스.
 
-수업(정복래 교수님 10~12주차)의 Express + EJS + MySQL 패턴을 그대로 따릅니다.
+수업의 Express + EJS + MySQL 패턴을 그대로 따릅니다.
 
 ## 기술 스택
 
@@ -22,6 +22,7 @@ study-village/
 ├─ views/              EJS 템플릿        ← 본인이 맡은 화면을 여기서 수정
 ├─ public/             정적 파일 (css, js, images)
 ├─ db/                 connection.js (mysql2 pool) + schema.sql
+├─ lib/                공용 헬퍼 (rng.js — 캐릭터 가중치 추첨/도감 등록)
 └─ socket/socket.js    Socket.IO 이벤트
 ```
 
@@ -116,17 +117,22 @@ SESSION_SECRET=study_village_secret_key
 3. 상단 메뉴 **File > Open SQL Script…** → `db/schema.sql` 선택
 4. ⚡ **번개 아이콘**(Execute) 클릭
 5. 하단 Action Output에 전부 ✓(초록색) 뜨면 성공
-6. 왼쪽 SCHEMAS 패널 새로고침 → `study_village` 안에 `users`, `rooms`, `study_logs` 3개 테이블 보이면 OK
+6. 왼쪽 SCHEMAS 패널 새로고침 → `study_village` 안에 7개 테이블이 보이면 OK
+   - 기존: `users`, `rooms`, `study_logs`
+   - MVP 추가: `characters`, `user_characters`, `eggs`, `seat_occupancy`
 
 확인 쿼리:
 
 ```sql
 USE study_village;
-SHOW TABLES;
-SELECT * FROM rooms;
+SHOW TABLES;                       -- 7개
+SELECT name, capacity FROM rooms;  -- "1번 학습방" / capacity 12
+SELECT COUNT(*) FROM characters;   -- 5
 ```
 
-`1번 학습방` 한 줄이 나오면 끝.
+위처럼 나오면 끝.
+
+> 회원가입을 하면 첫 알 1개와 N등급 캐릭터 1장이 자동 지급됩니다. 그래서 가입 직후 바로 학습방에서 좌석 점유 → 공부 시작이 가능합니다.
 
 ### 8. 서버 실행해보기
 
@@ -144,10 +150,10 @@ npm run dev
 
 | 담당 | 경로 | 수정할 파일 |
 |---|---|---|
-| 송정한 | `/auth/login`, `/auth/register`, `/auth/logout` | `routes/auth.js`, `views/login.ejs`, `views/register.ejs` |
+| 송정한 | `/auth/login`, `/auth/register`, `/auth/logout`, `/auth/withdraw` | `routes/auth.js`, `views/login.ejs`, `views/register.ejs` |
 | 임태균 | `/study/start`, `/study/end`, `/records` | `routes/study.js`, `routes/records.js`, `views/records.ejs` |
-| 오유진 | `/room` 화면 | `views/room.ejs` (라우터는 김준영) |
-| 김준영(팀장) | 메인 + 인프라 + `/room` 라우터 | `routes/index.js`, `routes/room.js`, `app.js`, `bin/www`, `db/*`, `socket/*` |
+| 오유진 | `/room` 화면 + 마을 테마 | `views/room.ejs`, `public/js/room.js`, `public/css/style.css` (라우터는 김준영) |
+| 김준영(팀장) | 메인 + 인프라 + `/room` 라우터 + 캐릭터/도감 | `routes/index.js`, `routes/room.js`, `routes/characters.js`, `views/characters.ejs`, `app.js`, `bin/www`, `db/*`, `socket/*`, `lib/*` |
 
 ### DB 접근 예시 (송정한·임태균·오유진 참고)
 
@@ -172,83 +178,136 @@ await pool.query('INSERT INTO users (username, password, nickname) VALUES (?, ?,
 
 ---
 
-## 🌿 작업 → GitHub에 올리는 방법 (매번)
+## 🌿 GitHub 작업 흐름
 
-### 1. 작업 시작 전 — 항상 최신 develop 가져오기
+### 기본 개념
+
+- `main`: 최종 제출/안정 버전
+- `develop`: 데모/테스트 기준 최신 버전
+- `feature/*`: 개인 작업 브랜치
+- `origin`: GitHub 원격 저장소의 별명
+- `merge`: 한 브랜치의 변경 내용을 다른 브랜치에 합치는 것
+- `Issue`: 해야 할 일, 버그, 기능 요청
+
+작업은 `develop`에 직접 하지 말고 본인 `feature/*` 브랜치에서 진행합니다. 작업이 끝나면 Pull Request로 `develop`에 합칩니다.
+
+### 1. 작업 시작 전: develop 최신화
 
 ```cmd
-git checkout develop
+git switch develop
 git pull origin develop
 ```
 
-### 2. 본인 브랜치 만들고 이동
+- `git switch develop`: 내 컴퓨터에서 `develop` 브랜치로 이동
+- `git pull origin develop`: GitHub의 최신 `develop`을 내 컴퓨터에 반영
+
+### 2-A. 새 작업 브랜치 만들기
+
+새로운 작업을 시작할 때는 최신 `develop`에서 새 브랜치를 만듭니다.
 
 ```cmd
-:: 송정한
-git checkout -b feature/auth
-
-:: 임태균
-git checkout -b feature/timer
-
-:: 오유진
-git checkout -b feature/room
+git switch develop
+git pull origin develop
+git switch -c feature/작업이름
+git push -u origin feature/작업이름
 ```
 
-> 이미 브랜치를 만들어둔 경우엔 `git checkout feature/auth` 처럼 `-b` 없이 이동.
+예시:
+
+```cmd
+git switch -c feature/room-ui
+git push -u origin feature/room-ui
+```
+
+`-u`는 내 로컬 브랜치와 GitHub 브랜치를 연결하는 옵션입니다. 한 번 연결하면 다음부터는 `git push`, `git pull`만 써도 됩니다.
+
+### 2-B. 기존 작업 브랜치에서 이어서 작업하기
+
+이미 본인 브랜치가 있다면, 본인 브랜치에서 최신 `develop`을 합친 뒤 작업합니다.
+
+```cmd
+git fetch origin
+git switch feature/본인브랜치
+git merge origin/develop
+```
+
+- `git fetch origin`: GitHub의 최신 브랜치 정보를 가져오기
+- `git switch feature/본인브랜치`: 내 작업 브랜치로 이동
+- `git merge origin/develop`: 최신 `develop` 내용을 내 작업 브랜치에 합치기
+
+충돌이 나면 혼자 해결하지 말고 팀장에게 공유하세요.
 
 ### 3. 본인이 맡은 파일만 수정
 
 위 **담당 역할** 표에 있는 파일만 건드리세요. **수정 금지 파일**은 아래 참고.
 
-### 4. 변경사항 확인
+### 4. 작업 후 상태 확인
 
 ```cmd
 git status
 git diff
 ```
 
-- `git status`: 어떤 파일이 바뀌었는지
-- `git diff`: 구체적으로 어디가 바뀌었는지
+- `git status`: 어떤 파일이 수정됐는지 확인
+- `git diff`: 파일 안에서 정확히 무엇이 바뀌었는지 확인
 
 내가 수정한 파일만 보이는지 꼭 확인하세요. 다른 파일이 보이면 팀장에게 문의.
 
-### 5. 본인이 맡은 파일만 stage
+### 5. 작업 후 커밋
 
-전체(`git add .`) 대신 **파일을 직접 지정**하는 게 안전해요:
+전체 변경을 올려도 되는 상황이면:
 
 ```cmd
-:: 예시 — 송정한
-git add routes/auth.js views/login.ejs views/register.ejs
+git add .
+git commit -m "feat: 작업 내용"
 ```
 
-### 6. 커밋
+특정 파일만 올리고 싶으면:
 
 ```cmd
+git add routes/auth.js views/login.ejs views/register.ejs
 git commit -m "feat: 로그인 기능 구현"
 ```
 
 커밋 메시지 규칙:
+
 - `feat:` 새 기능 추가
 - `fix:` 버그 수정
+- `docs:` 문서 수정
 - `style:` CSS / 화면 디자인 수정
-- `chore:` 그 외 자잘한 작업
+- `refactor:` 코드 구조 개선
+- `chore:` 설정 / 기타 작업
 
-### 7. GitHub에 push
+### 6. GitHub에 올리기
+
+처음 push 때 `-u`로 연결했다면:
 
 ```cmd
-git push origin feature/auth
+git push
 ```
 
-(처음 push일 때는 `git push -u origin feature/auth`로 한 번만)
+연결하지 않았다면:
 
-### 8. GitHub에서 Pull Request 생성
+```cmd
+git push origin feature/작업이름
+```
+
+### 7. GitHub에서 Pull Request 생성
 
 1. 본인 저장소 페이지([https://github.com/Urban-Potato-717/study-village](https://github.com/Urban-Potato-717/study-village)) 들어가기
-2. 노란 배너 `Compare & pull request` 클릭
-3. 제목과 설명 적고 **Create pull request**
-4. 팀장(김준영)이 확인 후 main에 merge
+2. `Compare & pull request` 클릭
+3. **base 브랜치를 `develop`으로 변경** (기본값이 `main`일 수 있으니 주의)
+4. 제목과 설명 적고 **Create pull request**
+5. 팀장(김준영)이 확인 후 `develop`에 merge
 
-merge가 끝나면 다시 1번부터 시작 (`git checkout main → git pull`).
+merge가 끝나면 다음 작업은 다시 `develop` 최신화부터 시작합니다.
+
+```cmd
+git switch develop
+git pull origin develop
+```
+
+핵심: 작업 전 `develop` 최신화, 작업은 `feature/*`에서, 끝나면 push 후 PR.
 
 ---
 
@@ -256,7 +315,7 @@ merge가 끝나면 다시 1번부터 시작 (`git checkout main → git pull`).
 
 아래 파일은 절대 직접 수정하지 마세요. 변경이 필요하면 **카톡으로 팀장에게 요청**:
 
-`app.js`, `bin/www`, `package.json`, `package-lock.json`, `db/schema.sql`, `db/connection.js`, `socket/socket.js`, `.env.example`, `.gitignore`, `README.md`
+`app.js`, `bin/www`, `package.json`, `package-lock.json`, `db/schema.sql`, `db/connection.js`, `socket/socket.js`, `lib/*`, `routes/characters.js`, `views/characters.ejs`, `.env.example`, `.gitignore`, `README.md`
 
 ---
 
@@ -275,5 +334,6 @@ merge가 끝나면 다시 1번부터 시작 (`git checkout main → git pull`).
 | `ER_ACCESS_DENIED_ERROR` | `.env`의 MySQL 비밀번호 틀림 | `.env` 다시 확인 |
 | `ECONNREFUSED` | MySQL 서비스가 안 켜져 있음 | `Get-Service MySQL*` 확인, 꺼져있으면 `Start-Service MySQL80` |
 | `ER_BAD_DB_ERROR` | `study_village` DB가 없음 | Workbench에서 `db/schema.sql` 다시 실행 |
+| `Duplicate column name 'current_character_id'` | `db/schema.sql` 재실행 시 `ALTER TABLE users` 가 두 번째로 실행됨 | 해당 ALTER 두 줄만 주석 처리하고 나머지 다시 실행 |
 | `EADDRINUSE` | 3000번 포트가 이미 사용 중 | 다른 npm 서버가 켜져있는지 확인 후 종료 |
-| push할 때 `rejected` | 원격에 새 커밋이 있음 | `git pull origin main --no-rebase` 후 다시 push |
+| push할 때 `rejected` | 원격에 새 커밋이 있음 | `git pull origin develop --no-rebase` 후 다시 push |

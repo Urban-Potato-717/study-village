@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>내 도감 - Study Village</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="village-bg">
+  <header class="page-header">
+    <h1>내 도감</h1>
+    <nav>
+      <a href="/">메인</a>
+      <a href="/room">학습방</a>
+      <a href="/records">내 기록</a>
+    </nav>
+  </header>
+
+  <section class="panel">
+    <h2>진행도 <%= dex.percent %>% (<%= dex.owned %> / <%= dex.total %>)</h2>
+    <div class="progress">
+      <div class="progress-fill" style="width: <%= dex.percent %>%"></div>
+    </div>
+  </section>
+
+  <section class="character-grid">
+    <% characters.forEach(function (c) { %>
+      <div class="character-card <%= c.owned ? 'owned' : 'locked' %>">
+        <div class="character-emoji"><%= c.emoji %></div>
+        <div class="character-name"><%= c.owned ? c.name : '???' %></div>
+        <div class="character-rarity rarity-<%= c.rarity %>"><%= c.rarity %></div>
+      </div>
+    <% }); %>
+  </section>
+</body>
+</html>
