@@ -1,17 +1,15 @@
 // routes/auth.js
-// 담당: 송정한 (feature/auth 브랜치)
-// 수업 11주차: express.Router()로 라우터 객체 생성 → 라우팅 분리
+// express.Router()로 라우터 객체 생성 → 라우팅 분리
 
 var express = require('express');
 var router  = express.Router();
-var pool = require('../db/connection'); // 12주차: 필요 시 주석 해제하여 DB 사용
+var pool = require('../db/connection'); // 필요 시 주석 해제하여 DB 사용
 var crypto  = require('crypto');
 // MVP: 회원가입 시 알 지급 + N등급 캐릭터 자동 추첨에 사용
 var rng = require('../lib/rng');
 
-// ─── 송정한 담당 구현 영역 ────────────────────────────────
-
 // GET /auth/login - 로그인 페이지 렌더링
+// authRouter 안에서 /login GET 요청을 처리하겠다
 router.get('/login', function (req, res, next) {
     res.render('login', { message: req.flash('error') });
 });
@@ -48,7 +46,8 @@ router.post('/login', async function (req, res, next) {
             nickname: user.nickname
         };
 
-        // 메인 화면이나 로비로 이동 (프로젝트 구조에 맞게 수정 가능)
+        // 메인 화면이나 로비로 이동
+        // 추후 리다이렉션 위치 수정 필요
         res.redirect('/'); 
 
     } catch (err) {
@@ -85,7 +84,7 @@ router.post('/register', async function (req, res, next) {
 
         // ─── MVP: 첫 알 1개 + N등급 캐릭터 1장 자동 지급 ───
         // 알: 활성(is_active=TRUE) 상태로 즉시 등록 → 첫 공부 종료부터 부화 진행도 증가
-        // TODO(시연): 부화 시간은 60초(데모용). 보고서대로면 600초(10분)로 되돌릴 것.
+        // TODO: 부화 시간은 60초(데모용). 보고서대로면 600초(10분)로 되돌릴 것.
         await pool.query(
             'INSERT INTO eggs (user_id, required_seconds, is_active) VALUES (?, 60, TRUE)',
             [newUserId]

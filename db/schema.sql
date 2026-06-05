@@ -1,9 +1,8 @@
 -- db/schema.sql
--- 수업 12주차 7.3: 데이터베이스, 테이블 생성하기
--- MySQL Workbench에서 이 파일을 열어 Execute 버튼으로 실행하세요.
+-- MySQL Workbench에서 이 파일을 열어 Execute 버튼으로 실행.
 -- 다시 실행해도 안전합니다 (IF NOT EXISTS / 중복 INSERT 방지).
 
--- ─── 데이터베이스 생성 ────────────────────────────────────
+-- 데이터베이스 생성
 -- utf8mb4: 한글 + 이모지까지 저장 가능한 문자셋
 -- utf8mb4_unicode_ci: 대소문자 구분 없이 비교(정렬)
 CREATE DATABASE IF NOT EXISTS study_village
@@ -11,23 +10,21 @@ CREATE DATABASE IF NOT EXISTS study_village
   COLLATE utf8mb4_unicode_ci;
 USE study_village;
 
--- ─── 사용자 테이블 (송정한 담당, MVP 컬럼 확장은 김준영) ─────
+-- ─── 사용자 테이블  ─────
 -- 수업: id INT NOT NULL AUTO_INCREMENT, PRIMARY KEY(id)
--- MVP 확장 컬럼:
 --   current_character_id : 현재 선택한 캐릭터 (도감에서 변경 — 미구현)
---   total_study_seconds  : 누적 공부 시간 (초)
 CREATE TABLE IF NOT EXISTS users (
-  id                   INT          NOT NULL AUTO_INCREMENT,
-  username             VARCHAR(20)  NOT NULL UNIQUE,                 -- 로그인 아이디 (중복 불가)
-  password             VARCHAR(200) NOT NULL,                        -- 해시된 비밀번호
+  id                   INT          NOT NULL AUTO_INCREMENT,  -- id는 INSERT 마다 DB가 알아서
+  username             VARCHAR(20)  NOT NULL UNIQUE,          -- 로그인 아이디 (UNIQUE)
+  password             VARCHAR(200) NOT NULL,                 -- 해시된 비밀번호
   nickname             VARCHAR(20)  NOT NULL,
-  current_character_id INT          NULL,                            -- MVP: 도감에서 선택한 캐릭터
-  total_study_seconds  INT          NOT NULL DEFAULT 0,               -- MVP: 누적 공부 시간(초)
+  current_character_id INT          NULL,                            -- 도감에서 선택한 캐릭터
+  total_study_seconds  INT          NOT NULL DEFAULT 0,              -- 누적 공부 시간(기본 0초)
   created_at           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 가입 시각 자동 기록
-  PRIMARY KEY (id)
+  PRIMARY KEY (id) -- id가 이 테이블의 대표 식별자!
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '사용자 정보';
 
--- ─── 학습방 테이블 (김준영 담당) ─────────────────────────
+-- ─── 학습방 테이블  ─────────────────────────
 CREATE TABLE IF NOT EXISTS rooms (
   id         INT         NOT NULL AUTO_INCREMENT,
   name       VARCHAR(50) NOT NULL,
@@ -36,20 +33,21 @@ CREATE TABLE IF NOT EXISTS rooms (
   PRIMARY KEY (id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '학습방';
 
--- ─── 공부 기록 테이블 (임태균 담당) ──────────────────────
--- 수업 12주차 슬라이드 33: FOREIGN KEY (컬럼명) REFERENCES 테이블명 (컬럼)
+-- ─── 공부 기록 테이블 ──────────────────────
 -- ON DELETE CASCADE — 부모 행(users/rooms)이 삭제되면 이 행도 함께 삭제됨
 CREATE TABLE IF NOT EXISTS study_logs (
   id         INT      NOT NULL AUTO_INCREMENT,
-  user_id    INT      NOT NULL,                            -- FK → users.id
-  room_id    INT      NOT NULL,                            -- FK → rooms.id
-  start_time DATETIME NOT NULL,                            -- 공부 시작 시각
-  end_time   DATETIME,                                     -- 공부 종료 시각 (진행 중이면 NULL)
-  duration   INT,                                          -- 공부 시간 (초 단위)
+  user_id    INT      NOT NULL, -- FK → users.id
+  room_id    INT      NOT NULL, -- FK → rooms.id
+  start_time DATETIME NOT NULL, -- 공부 시작 시각
+  end_time   DATETIME,    -- NULL 허용 듀오: 공부 종료 시각 (진행 중이면 NULL)
+  duration   INT,         --              : 공부 시간 (초 단위)
   PRIMARY KEY (id),
-  CONSTRAINT fk_study_user
+-- FOREIGN KEY (컬럼명): 외래키. user_id는 반드시 user.id에 존재하는 값 이어야만 함.
+-- REFERENCES 테이블명 (컬럼): FK. 반드시 user 테이블에 존재하는 값이야 함.
+  CONSTRAINT fk_study_user -- 그냥 이름표 (에러 잡는용)
     FOREIGN KEY (user_id) REFERENCES users (id)
-    ON DELETE CASCADE ON UPDATE CASCADE,
+    ON DELETE CASCADE ON UPDATE CASCADE, -- users에서 누군가 삭제되면 테이블에서도 삭제.
   CONSTRAINT fk_study_room
     FOREIGN KEY (room_id) REFERENCES rooms (id)
     ON DELETE CASCADE ON UPDATE CASCADE
@@ -66,9 +64,9 @@ WHERE NOT EXISTS (
 -- MVP에서 좌석 수를 12석으로 늘림 (기존에 6석으로 만들어진 행이 있어도 12로 갱신)
 UPDATE rooms SET capacity = 12 WHERE name = '1번 학습방' AND capacity <> 12;
 
--- ===========================================================
--- MVP 확장: 캐릭터 / 도감 / 알 / 좌석 점유 영속화 (김준영 담당)
--- ===========================================================
+-- ==============================================
+-- MVP 확장: 캐릭터 / 도감 / 알 / 좌석 점유 영속화 
+-- ==============================================
 
 -- ─── 캐릭터 마스터 (도감 전체 목록) ─────────────────────
 -- emoji: PNG 에셋 준비 전에는 이모지로 폴백 렌더
@@ -139,6 +137,7 @@ CREATE TABLE IF NOT EXISTS seat_occupancy (
 -- 새 DB에는 위 CREATE TABLE users 가 이미 두 컬럼을 포함하고 있으므로 불필요.
 -- 단, MVP 이전에 만들어진 기존 users 테이블에 컬럼이 없는 경우에만
 -- 아래 두 줄의 주석을 해제하여 1회 실행할 것.
+
 -- ALTER TABLE users
 --  ADD COLUMN current_character_id INT NULL,
 --  ADD COLUMN total_study_seconds  INT NOT NULL DEFAULT 0;
@@ -146,6 +145,8 @@ CREATE TABLE IF NOT EXISTS seat_occupancy (
 -- ─── 캐릭터 시드 5종 ─────────────────────
 -- WHERE NOT EXISTS 로 멱등성 확보
 -- image_path 는 추후 PNG 에셋이 준비되면 사용
+-- 보통 SELECT는 "데이터 가져와"인데 여긴 다름
+-- SELECT 값 WHERE 조건 — 조건이 참일 때만 그 값을 반환.
 INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
 SELECT '뿡뿡이', '/images/characters/c1.png', '', 'N', 100
 WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '뿡뿡이');

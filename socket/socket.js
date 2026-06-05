@@ -1,6 +1,5 @@
 // socket/socket.js
 // Socket.IO 이벤트 핸들러 — MVP: 좌석 점유 영속화
-// 팀원 안내: 이 파일은 팀장(김준영)이 관리합니다.
 
 var pool = require('../db/connection');
 
@@ -10,15 +9,15 @@ async function loadSeatPayload(roomId, userId, seatNumber) {
     'SELECT so.seat_number, so.status, u.id AS userId, u.nickname,'
     + ' c.emoji, c.image_path, c.name AS characterName'
     + ' FROM seat_occupancy so'
-    + ' JOIN users u ON u.id = so.user_id'
-    + ' LEFT JOIN characters c ON c.id = u.current_character_id'
-    + ' WHERE so.room_id = ? AND so.seat_number = ?',
+    + ' JOIN users u ON u.id = so.user_id' // 좌석에 앉은 사람 닉네임 가져오기
+    + ' LEFT JOIN characters c ON c.id = u.current_character_id' // 그 사람의 "캐릭터" 가져오기
+    + ' WHERE so.room_id = ? AND so.seat_number = ?', // 첫 번째 ? -> roomID, 두 번째 ? -> userID. 값들이 들어갈 자리.
     [roomId, seatNumber]
   );
   if (rows.length === 0) return null;
-  var r = rows[0];
+  var r = rows[0]; // '첫 번째 행' 꺼냄.
   return {
-    seatNumber: r.seat_number,
+    seatNumber: r.seat_number, // 첫 번째 행의 'r.컬럼 명'으로 값 꺼내기
     status: r.status,
     user: {
       id: r.userId,
@@ -31,11 +30,12 @@ async function loadSeatPayload(roomId, userId, seatNumber) {
 }
 
 // bin/www 에서 registerSocket(io) 형태로 호출됩니다.
-module.exports = function (io) {
-  io.on('connection', function (socket) {
+module.exports = function (io) { // bin/www에서 io 받음 (소켓 서버 받기)
+  io.on('connection', function (socket) { //! 누군가 소켓 연결 시 마다 실행 ...
     console.log('socket 연결:', socket.id);
 
-    // ─── joinRoom: 학습방 입장 ───────────────────
+    //! socket은 그 접속한 클라이언트 한 명을 가리키는 객체 ...
+    // ─── joinRoom: 학습방 입장 이벤트 ───────────────────
     socket.on('joinRoom', function (payload) {
       // 클라가 { roomId, userId } 또는 단순 roomId 를 보낼 수 있음
       var roomId = (payload && payload.roomId) || payload;
@@ -46,7 +46,7 @@ module.exports = function (io) {
       console.log(socket.id + ' → room-' + roomId + ' 입장 (user=' + userId + ')');
     });
 
-    // ─── selectSeat: 좌석 선택 (영속화) ───────────────────
+    // ─── selectSeat: 좌석 선택 이벤트 ───────────────────
     // data = { roomId, seatNumber, userId }
     socket.on('selectSeat', async function (data) {
       try {
@@ -100,12 +100,13 @@ module.exports = function (io) {
       }
     });
 
-    // ─── studyStatusChanged: 공부 시작/종료 상태 ───
+    // ─── studyStatusChanged: 공부 시작/종료 상태 이벤트 ───
     // 라우터(routes/study.js)에서 직접 broadcast 하므로 호환용으로만 유지
     socket.on('studyStatusChanged', function (data) {
       io.to('room-' + data.roomId).emit('studyStatusChanged', data);
     });
 
+    // ─── disconnect 이벤트 ────────────────────────────────
     socket.on('disconnect', async function () {
       console.log('socket 연결 해제:', socket.id);
       try {

@@ -1,6 +1,6 @@
-#!/usr/bin/env node
+//  #!/usr/bin/env node // 리눅스/맥 OS 실행용
 
-// bin/www: 서버를 실행하는 스크립트
+// bin/www: 서버를 실행 스크립트
 // app.js(서버 본체)를 require해서 http 서버로 감쌈
 
 var app  = require('../app');   // app.js를 모듈로 불러옴
@@ -11,20 +11,19 @@ var http = require('http');     // Node.js 내장 http 모듈
 var port = process.env.PORT || '3000';
 app.set('port', port);
 
-// http.createServer(app) — app이 콜백 함수 역할
+// http.createServer(app) — app이 콜백 함수 역할하는 HTTP 서버 객체 만들기.
 var server = http.createServer(app);
 
-// ─── Socket.IO 연결 ───────────────────────────────
+//! ─── Socket.IO 연결 ───────────────────────────
 // 같은 http 서버에 Socket.IO를 붙임
 var { Server }     = require('socket.io');
-var io             = new Server(server);
+var io             = new Server(server); // 소켓 기능을 기존 HTTP 서버에 붙이기
 var registerSocket = require('../socket/socket');
-registerSocket(io);
-// 라우터에서 req.app.get('io') 로 broadcast 할 수 있도록 app 객체에 보관
-app.set('io', io);
-// ─────────────────────────────────────────────────
+registerSocket(io); //socket을 등록.
+app.set('io', io); // 라우터에서 req.app.get('io') 로 broadcast 할 수 있도록 app 객체에 보관
+//!───────────────────────────────────────────────
 
-// 수업 4장: server.listen으로 포트 연결
+// server.listen으로 포트 연결
 server.listen(port, function () {
   console.log(port + '번 포트에서 서버 실행 중 — http://localhost:' + port);
 });

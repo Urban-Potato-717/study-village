@@ -1,6 +1,5 @@
 // routes/records.js
-// 담당: 임태균(MVP 본구현은 김준영 통합 PR)
-// 공부 기록 조회 + 도감 진행도 + 활성 알 진행도
+// 공부 기록 조회 + 도감 진행도 + 활성 알 진행도 (MVP 통합)
 
 var express = require('express');
 var router  = express.Router();

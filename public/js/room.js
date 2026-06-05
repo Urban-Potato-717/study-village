@@ -76,18 +76,19 @@
       : '좌석을 먼저 선택하세요.';
   }
 
-  // ─── Socket.IO ───────────────────────────────────
+  //! ─── Socket.IO ───────────────────────────────────
   if (socket) {
     socket.emit('joinRoom', { roomId: roomId, userId: userId });
+    // 페이지 열리자마자 서버한테 "나 room-1 들어갈게" 전송
 
     socket.on('seatUpdated', function (data) {
       if (!data) return;
-      renderSeat(data.seatNumber, data);
+      renderSeat(data.seatNumber, data); // 좌석 화면 업데이트
     });
 
     socket.on('seatLeft', function (data) {
       if (!data) return;
-      renderSeat(data.seatNumber, null);
+      renderSeat(data.seatNumber, null); // 좌석 비움
     });
 
     socket.on('seatRejected', function (data) {
@@ -101,9 +102,9 @@
     });
   }
 
-  // ─── 좌석 클릭 ───────────────────────────────────
+  //! ─── 좌석 클릭 ───────────────────────────────────
   seatsEl.addEventListener('click', function (e) {
-    var cell = e.target.closest('.seat-cell');
+    var cell = e.target.closest('.seat-cell'); // 클릭한 좌석 요소 찾기
     if (!cell) return;
 
     var seatNumber = parseInt(cell.getAttribute('data-seat-number'), 10);
@@ -115,9 +116,9 @@
       return;
     }
 
-    setSelectedSeat(seatNumber);
+    setSelectedSeat(seatNumber); // 선택 표시
 
-    if (socket) {
+    if (socket) {  // if는 socket 연결이 만들어졌는지 검증. 서버에 전송 (emit)
       socket.emit('selectSeat', {
         roomId: roomId,
         seatNumber: seatNumber,

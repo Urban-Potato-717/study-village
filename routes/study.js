@@ -1,11 +1,11 @@
 // routes/study.js
-// 담당: 임태균 (feature/timer 브랜치) — MVP 본구현은 김준영이 통합 PR로 작성
+// (feature/timer 브랜치) — MVP 본구현은 김준영이 통합 PR로 작성
 // 공부 시작/종료 API + 알 부화 처리
 
 var express = require('express');
 var router  = express.Router();
-var pool    = require('../db/connection');
-var rng     = require('../lib/rng');
+var pool    = require('../db/connection'); // db 연결
+var rng     = require('../lib/rng');       // 캐릭터 랜덤 추첨
 
 // 공통: 로그인 체크
 function requireLogin(req, res) {
@@ -52,9 +52,11 @@ router.post('/start', async function (req, res, next) {
       );
     }
 
-    // 2) study_logs INSERT (start_time = NOW())
+    //! 2) study_logs INSERT (start_time = NOW())
     var [insertResult] = await pool.query(
       'INSERT INTO study_logs (user_id, room_id, start_time) VALUES (?, ?, NOW())',
+      //study_logs 테이블에, 누가 공부했는지 / 어느 방에서 / 언제 시작했는지를 새로 저장한다.
+      //NOW(): MySQL이 현재 시간을 직접 넣어준다.
       [userId, roomId]
     );
     var logId = insertResult.insertId;
@@ -119,7 +121,7 @@ router.post('/end', async function (req, res, next) {
       return res.status(400).json({ ok: false, message: '이미 종료된 세션입니다.' });
     }
 
-    // 2) 종료 시각 + duration 갱신
+    //! 2) 종료 시각 + duration 갱신
     await pool.query(
       'UPDATE study_logs SET end_time = NOW(),'
       + ' duration = TIMESTAMPDIFF(SECOND, start_time, NOW()) WHERE id = ?',
@@ -130,7 +132,7 @@ router.post('/end', async function (req, res, next) {
     );
     var duration = updated[0].duration || 0;
 
-    // 3) 누적 시간 갱신
+    //! 3) 누적 시간 갱신
     await pool.query(
       'UPDATE users SET total_study_seconds = total_study_seconds + ? WHERE id = ?',
       [duration, userId]
@@ -146,7 +148,7 @@ router.post('/end', async function (req, res, next) {
       ['waiting', userId]
     );
 
-    // 5) 활성 알에 진행도 적용 + 부화 처리
+    //! 5) 활성 알에 진행도 적용 + 부화 처리
     var eggPayload = null;
     var [eggRows] = await pool.query(
       'SELECT id, required_seconds, progress_seconds FROM eggs'
@@ -172,7 +174,7 @@ router.post('/end', async function (req, res, next) {
           await rng.grantCharacterAndMaybeRefreshCurrent(pool, userId, newCharacter.id);
         }
         // 다음 알 자동 지급
-        // TODO(시연): 부화 시간은 60초(데모용). 보고서대로면 600초(10분)로 되돌릴 것.
+        // TODO: 부화 시간은 60초(데모용). 보고서대로면 600초(10분)로 되돌릴 것.
         await pool.query(
           'INSERT INTO eggs (user_id, required_seconds, is_active) VALUES (?, 60, TRUE)',
           [userId]
