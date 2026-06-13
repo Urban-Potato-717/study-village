@@ -1,3 +1,5 @@
+<!--* 방 안에 들어왔을 때 보는 화면 -->
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -6,6 +8,7 @@
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body class="village-bg">
+  <!--! header: 제목 + 네비게이션 (메인/내 기록/내 도감/로그아웃)-->
   <header class="page-header">
     <h1>공부 마을 — <%= room.name %></h1>
     <nav>
@@ -15,7 +18,7 @@
       <a href="/auth/logout">로그아웃</a>
     </nav>
   </header>
-
+  <!--! main.room-Layoyt-->
   <main class="room-layout">
     <!-- 좌석 영역: 3×4 그리드 -->
     <section id="seats" class="seats-grid"
@@ -42,7 +45,7 @@
       <% }); %>
     </section>
 
-    <!-- 사이드바 -->
+    <!-- 사이드바 (방 정보/내 캐릭터 + 시작 종료/알진행도/오늘 기록) -->
     <aside class="sidebar">
       <!-- 방 정보 -->
       <div class="panel">
@@ -108,7 +111,7 @@
       </div>
     </aside>
   </main>
-
+   <!--! scripts: socket.io, room.js, timer.js-->
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/room.js"></script>
   <script src="/js/timer.js"></script>
