@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS users (
   nickname             VARCHAR(20)  NOT NULL,
   current_character_id INT          NULL,                            -- 도감에서 선택한 캐릭터
   total_study_seconds  INT          NOT NULL DEFAULT 0,              -- 누적 공부 시간(기본 0초)
-  current_room_id      INT          NULL,                            -- 현재 접속한 방 (NULL = 로비). "한 방만 접속"을 단일 컬럼으로 강제 (유효성은 라우터에서 보장, FK 생략)
-  created_at           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 가입 시각 자동 기록
+  current_room_id      INT          NULL,                            -- 현재 접속한 방 (NULL = 로비). "한 방만 접속"을 단일 컬럼으로 강제
+  created_at           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 가입 시각 자동 기록 (그냥 하면 좋으니까? 아님 말고)
   PRIMARY KEY (id) -- id가 이 테이블의 대표 식별자!
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COMMENT = '사용자 정보';
 
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS seat_occupancy (
 
 -- ! 혼자 개발해서 마이그레이션 기능은 삭제함.
 
--- ─── 캐릭터 시드 5종 ─────────────────────
+-- 캐릭터 시드 5종
 -- WHERE NOT EXISTS 로 멱등성 확보
 -- image_path 는 추후 PNG 에셋이 준비되면 사용
 -- 보통 SELECT는 "데이터 가져와"인데 여긴 다름
