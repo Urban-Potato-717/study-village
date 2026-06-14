@@ -2,30 +2,48 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Study Village</title>
   <link rel="stylesheet" href="/css/style.css" />
 </head>
-<body>
-  <header>
-    <h1>Study Village</h1>
-    <nav>
-      <% if (currentUser) { %>
-        <span><%= currentUser.nickname %>님 환영합니다</span>
-        <a href="/room">학습방</a>
-        <a href="/records">내 기록</a>
-        <a href="/auth/logout">로그아웃</a>
-        <form action="/auth/withdraw" method="POST" onsubmit="return confirm('정말로 탈퇴하시겠습니까? 모든 정보가 삭제됩니다.');" style="display: inline; margin-left: 10px;">
-            <button type="submit" style="background: none; border: none; color: #ff4d4d; cursor: pointer; text-decoration: underline; font-family: inherit; font-size: inherit; padding: 0;">회원탈퇴</button>
-        </form>
-      <% } else { %>
-        <a href="/auth/login">로그인</a>
-        <a href="/auth/register">회원가입</a>
-      <% } %>
-    </nav>
-  </header>
+<body class="village-bg">
+  <section class="hero">
+    <h1 class="hero-title"><span class="accent">Study Village</span></h1>
+    <p class="hero-subtitle">공부 마을</p>
+    <p class="hero-tagline">
+      친구들과 같은 방에서 공부하고, 집중한 시간만큼 알을 부화시켜<br />
+      나만의 캐릭터를 도감에 모아보세요.
+    </p>
 
-  <main>
-    <p>웹 기반 공동 학습 서비스입니다.</p>
-  </main>
+    <div class="hero-sprites">
+      <img src="/images/characters/c1.png" alt="말랑이" />
+      <img src="/images/characters/c2.png" alt="동글이" />
+      <img src="/images/characters/c3.png" alt="별마법사" />
+      <img src="/images/characters/c4.png" alt="강철기사" />
+      <img src="/images/characters/c5.png" alt="불꽃마왕" />
+    </div>
+
+    <% if (currentUser) { %>
+      <p class="hero-welcome"><%= currentUser.nickname %>님, 어서 오세요!</p>
+      <div class="hero-actions">
+        <a href="/room" class="hero-btn primary">학습방 입장</a>
+        <a href="/records" class="hero-btn secondary">내 기록</a>
+        <a href="/characters" class="hero-btn secondary">내 도감</a>
+      </div>
+      <div>
+        <a href="/auth/logout" class="hint" style="display:inline-block;margin-top:16px;">로그아웃</a>
+        <form action="/auth/withdraw" method="POST"
+              onsubmit="return confirm('정말로 탈퇴하시겠습니까? 모든 정보가 삭제됩니다.');"
+              style="display:inline;">
+          <button type="submit" class="hero-withdraw">회원탈퇴</button>
+        </form>
+      </div>
+    <% } else { %>
+      <div class="hero-actions">
+        <a href="/auth/login" class="hero-btn primary">로그인</a>
+        <a href="/auth/register" class="hero-btn secondary">회원가입</a>
+      </div>
+    <% } %>
+  </section>
 </body>
 </html>

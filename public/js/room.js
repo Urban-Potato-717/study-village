@@ -33,7 +33,7 @@
       cell.classList.add('occupied');
       if (payload.user.id === userId) cell.classList.add('mine');
       else cell.classList.remove('mine');
-      emojiEl.textContent = payload.user.emoji || '';
+      setSeatStage(emojiEl, payload.user);
       nickEl.textContent  = payload.user.nickname || '익명';
 
       if (!statusEl) {
@@ -50,10 +50,38 @@
                                        : '대기';
     } else {
       cell.classList.remove('occupied', 'mine');
-      emojiEl.textContent = '';
+      setSeatStage(emojiEl, null);
       nickEl.textContent  = '좌석 ' + seatNumber;
       if (statusEl) statusEl.remove();
     }
+  }
+
+  // 좌석 무대 구성: 의자(바닥)는 항상 깔고, 점유 시 캐릭터를 그 위에 겹쳐 그림
+  function setSeatStage(container, user) {
+    container.innerHTML = '<img class="seat-chair" src="/images/tiles/chair.png" alt="좌석" />';
+    if (!user) return;
+
+    if (user.imagePath) {
+      var img = document.createElement('img');
+      img.className = 'seat-char sprite-img';
+      img.src = user.imagePath;
+      img.alt = '';
+      img.onerror = function () {
+        img.remove();
+        container.appendChild(makeSeatEmoji(user.emoji));
+      };
+      container.appendChild(img);
+    } else {
+      container.appendChild(makeSeatEmoji(user.emoji));
+    }
+  }
+
+  // 이미지 로드 실패 시 좌석 위에 올릴 이모지 폴백 요소
+  function makeSeatEmoji(emoji) {
+    var span = document.createElement('span');
+    span.className = 'seat-char sprite-emoji';
+    span.textContent = emoji || '';
+    return span;
   }
 
   // ─── 방 인원 목록 (private 방 전용, 4초 폴링으로 갱신) ─

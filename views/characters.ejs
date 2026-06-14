@@ -25,7 +25,11 @@
   <section class="character-grid">
     <% characters.forEach(function (c) { %>
       <div class="character-card <%= c.owned ? 'owned' : 'locked' %>">
-        <div class="character-emoji"><%= c.emoji %></div>
+        <div class="character-sprite">
+          <img class="sprite-img" src="<%= c.image_path %>" alt="<%= c.name %>"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block'" />
+          <span class="sprite-emoji" style="display:none"><%= c.emoji %></span>
+        </div>
         <div class="character-name"><%= c.owned ? c.name : '???' %></div>
         <div class="character-rarity rarity-<%= c.rarity %>"><%= c.rarity %></div>
       </div>

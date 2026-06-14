@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>study-village 회원가입</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/gh/quiple/galmuri/dist/galmuri.css" rel="stylesheet">
     <style>
         /* 1. 전체 화면 배경 설정 (로그인 테마와 완벽 일치) */
         body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: #f6f5f0; 
+            font-family: 'Galmuri11', sans-serif;
+            background-color: #FAF3E0;
+            background-image:
+                linear-gradient(rgba(250, 243, 224, 0.86), rgba(250, 243, 224, 0.86)),
+                url('/images/tiles/floor.png');
+            background-size: auto, 48px 48px;
+            image-rendering: pixelated;
             margin: 0;
             padding: 0;
             display: flex;
@@ -38,7 +43,7 @@
             display: inline-block;
             width: 42px;
             height: 32px;
-            border: 3px solid #1c335a;
+            border: 3px solid #DDA60B;
             border-radius: 4px;
             position: relative;
             margin-bottom: 8px;
@@ -50,13 +55,13 @@
             top: 0;
             bottom: 0;
             width: 3px;
-            background-color: #bfa15f;
+            background-color: #F4C430;
             transform: translateX(-50%);
         }
         .logo-text {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #1c335a;
+            color: #DDA60B;
             letter-spacing: -0.5px;
             margin: 0;
         }
@@ -96,16 +101,16 @@
         }
         /* 입력창 찌를 때 청록색 포인트 불빛 */
         .input-group input:focus {
-            border-color: #279b9b;
-            box-shadow: 0 0 0 3px rgba(39, 155, 155, 0.1);
+            border-color: #DDA60B;
+            box-shadow: 0 0 0 3px rgba(244, 196, 48, 0.25);
         }
 
         /* 6. 청록색 알약 모양 회원가입 완료 버튼 */
         .btn-register {
             width: 100%;
             padding: 14px;
-            background-color: #279b9b;
-            color: #ffffff;
+            background-color: #F4C430;
+            color: #2A2A2A;
             border: none;
             border-radius: 25px;
             font-size: 1rem;
@@ -115,7 +120,7 @@
             transition: background-color 0.2s ease;
         }
         .btn-register:hover {
-            background-color: #1e7a7a;
+            background-color: #DDA60B;
         }
 
         /* 7. 하단 네비게이션 링크 (담백하고 직관적인 구성) */

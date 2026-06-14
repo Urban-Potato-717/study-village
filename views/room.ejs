@@ -29,7 +29,14 @@
       <% seats.forEach(function (seat) { %>
         <div class="seat-cell <%= seat.occupied ? 'occupied' : '' %> <%= seat.user && seat.user.isMe ? 'mine' : '' %>"
              data-seat-number="<%= seat.seatNumber %>">
-          <div class="seat-emoji"><%= seat.user ? seat.user.emoji : '' %></div>
+          <div class="seat-emoji">
+            <img class="seat-chair" src="/images/tiles/chair.png" alt="좌석" />
+            <% if (seat.user) { %>
+              <img class="seat-char sprite-img" src="<%= seat.user.imagePath %>" alt=""
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block'" />
+              <span class="seat-char sprite-emoji" style="display:none"><%= seat.user.emoji %></span>
+            <% } %>
+          </div>
           <div class="seat-nick">
             <%= seat.user ? seat.user.nickname : ('좌석 ' + seat.seatNumber) %>
           </div>
@@ -107,7 +114,11 @@
       <!-- 내 캐릭터 + 시작/종료 -->
       <div class="panel my-panel">
         <div class="my-character">
-          <div class="my-emoji"><%= me.emoji %></div>
+          <div class="my-emoji">
+            <img class="sprite-img" src="<%= me.imagePath %>" alt=""
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block'" />
+            <span class="sprite-emoji" style="display:none"><%= me.emoji %></span>
+          </div>
           <div class="my-info">
             <div class="my-nick"><%= me.nickname %></div>
             <div class="my-character-name">
