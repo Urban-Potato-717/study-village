@@ -1,23 +1,40 @@
-// routes/room.js
-// 학습방/좌석 라우터 — MVP
+// Object: 초대 코드 발급 -> rooms에 INSERT 이름 + host_id 혹은 invite_code=[code] -> 나를 그 방으로 이동 -> /room redirect
 
 var express = require('express');
 var router  = express.Router();
 var pool    = require('../db/connection');
+var inviteCode = require('../lib/inviteCode');
 
-// GET /room — 학습방 화면 (1번방 고정, 12석)
+// GET /room 처리
 router.get('/', async function (req, res, next) {
   try {
     if (!req.session.user) return res.redirect('/auth/login');
     var me = req.session.user;
 
-    // 1) 방 정보 — id 고정 대신 가장 먼저 만들어진 방 1개 사용
-    //    (시드 INSERT가 다른 id로 들어갔거나 rooms가 비어있는 경우에 대비)
-    var [roomRows] = await pool.query(
-      'SELECT id, name, capacity FROM rooms ORDER BY id ASC LIMIT 1'
-    );
+    // 1) 내 최신 current_room_id 를 DB에서 직접 조회.
+    var [userRows] = await pool.query(
+        'SELECT current_room_id FROM users WHERE id = ?',                                                     
+        [me.id] // me는 객체 전체 - 유저 번호 하나는 me.id    
+      );
+    var currentRoomId = userRows[0] ? userRows[0].current_room_id : null; //SELECT 했던 컬럼명과 같게
+
+    // 2) 방 결정 — NULL 이면 로비, 값 있으면 그 private 방
+    var roomRows;
+    if (currentRoomId === null) {
+        // 로비: 공용 라이브러리 (host 없는 기본 공용 방)
+        [roomRows] = await pool.query(
+          'SELECT id, name, capacity FROM rooms WHERE host_user_id IS NULL ORDER BY id ASC LIMIT 1'
+        );
+    } else {
+        // private 방
+        [roomRows] = await pool.query(
+          'SELECT id, name, capacity FROM rooms WHERE id = ?',
+          [currentRoomId]
+      );
+    }
+
     if (roomRows.length === 0) {
-      return res.status(500).send('학습방 데이터가 없습니다. db/schema.sql 을 실행하세요.');
+        return res.status(500).send('학습방 데이터가 없습니다. db/schema.sql 을 실행하세요.');
     }
     var room = roomRows[0];
 
@@ -97,6 +114,38 @@ router.get('/', async function (req, res, next) {
       today: today,
     });
   } catch (err) {
+    next(err);
+  }
+});
+
+// POST /room/create 처리 - 방 생성
+router.post('/create', async function (req, res, next){
+  try{
+    if (!req.session.user) return res.redirect('/auth/login');
+    var me = req.session.user;
+    var name = req.body.name || (me.nickname + '의 방');
+
+    // 1) 초대코드 발급 받아오기
+    var code = await inviteCode.generateUniqueInviteCode(pool);
+
+    // 2) rooms INSERT - DB
+    var [result] = await pool.query(
+      'INSERT INTO rooms (name, host_user_id, invite_code) VALUES (?,?,?)',
+      // INSERT INTO 테이블 (칼럼, 칼럼, 칼럼) VALUES (실제 들어갈 값들의 플레이스 홀더 = ?) 
+      //! rooms 테이블에 "새 row" 하나를 추가한다. (칼럼 칼럼 칼럼)은 이 row의 구성, values에 실제 들어갈 값.
+      [name, me.id, code]
+    );
+    var newRoomID = result.insertId; //! insertID = 방금 생성된 행의 AUTO_INCREMENT id.
+
+    // 3) 나를 그 방으로 이동
+    await pool.query(
+      'UPDATE users SET current_room_id = ? WHERE id = ?',
+      [newRoomID, me.id]
+    );
+
+    // 4) 방 화면으로
+    res.redirect('/room');
+  } catch (err){
     next(err);
   }
 });
