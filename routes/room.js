@@ -23,12 +23,12 @@ router.get('/', async function (req, res, next) {
     if (currentRoomId === null) {
         // 로비: 공용 라이브러리 (host 없는 기본 공용 방)
         [roomRows] = await pool.query(
-          'SELECT id, name, capacity FROM rooms WHERE host_user_id IS NULL ORDER BY id ASC LIMIT 1'
+          'SELECT id, name, capacity, host_user_id, invite_code FROM rooms WHERE host_user_id IS NULL ORDER BY id ASC LIMIT 1'
         );
     } else {
         // private 방
         [roomRows] = await pool.query(
-          'SELECT id, name, capacity FROM rooms WHERE id = ?',
+          'SELECT id, name, capacity, host_user_id, invite_code FROM rooms WHERE id = ?',
           [currentRoomId]
       );
     }
@@ -99,6 +99,23 @@ router.get('/', async function (req, res, next) {
       sessions: todayRows[0].cnt || 0,
     };
 
+    // 5) 방 소속 인원 목록 (로비=current_room_id NULL, private=room.id)
+    //    WHERE 절만 분기 — 값은 항상 파라미터로 바인딩(SQL 안전)라는데 음 뭐라는거지
+    var memberWhere = currentRoomId === null
+      ? 'u.current_room_id IS NULL'
+      : 'u.current_room_id = ?';
+    var memberParams = currentRoomId === null ? [] : [currentRoomId];
+    var [memberRows] = await pool.query(
+      'SELECT u.id, u.nickname, c.emoji'
+      + ' FROM users u LEFT JOIN characters c ON c.id = u.current_character_id'
+      + ' WHERE ' + memberWhere
+      + ' ORDER BY u.id ASC',
+      memberParams
+    );
+    var members = memberRows.map(function (m) {
+      return { id: m.id, nickname: m.nickname, emoji: m.emoji || '', isMe: m.id === me.id };
+    });
+
     res.render('room', {
       room: room,
       seats: seats,
@@ -112,6 +129,45 @@ router.get('/', async function (req, res, next) {
       },
       egg: egg,
       today: today,
+      members: members,
+      // 로비 여부: host 없는 방이면 로비. 뷰에서 방만들기/입장 폼 vs 초대코드/나가기 분기에 사용
+      isLobby: room.host_user_id == null,
+      error: req.flash('error'),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /room/members - 현재 내 방의 인원 목록 (JSON, 클라 폴링용)
+router.get('/members', async function (req, res, next) {
+  try {
+    if (!req.session.user) return res.status(401).json({ members: [] });
+    var me = req.session.user;
+
+    // 내 최신 current_room_id 조회 (세션 값은 stale)
+    var [userRows] = await pool.query(
+      'SELECT current_room_id FROM users WHERE id = ?',
+      [me.id]
+    );
+    var currentRoomId = userRows[0] ? userRows[0].current_room_id : null;
+
+    // 소속 인원 (로비=NULL, private=그 방). WHERE 절만 분기, 값은 ? 바인딩
+    var memberWhere = currentRoomId === null
+      ? 'u.current_room_id IS NULL'
+      : 'u.current_room_id = ?';
+    var memberParams = currentRoomId === null ? [] : [currentRoomId];
+    var [rows] = await pool.query(
+      'SELECT u.id, u.nickname, c.emoji'
+      + ' FROM users u LEFT JOIN characters c ON c.id = u.current_character_id'
+      + ' WHERE ' + memberWhere
+      + ' ORDER BY u.id ASC',
+      memberParams
+    );
+    res.json({
+      members: rows.map(function (m) {
+        return { id: m.id, nickname: m.nickname, emoji: m.emoji || '' };
+      }),
     });
   } catch (err) {
     next(err);
@@ -144,6 +200,65 @@ router.post('/create', async function (req, res, next){
     );
 
     // 4) 방 화면으로
+    res.redirect('/room');
+  } catch (err){
+    next(err);
+  }
+});
+
+// POST /room/join 처리 - 초대코드로 입장
+router.post('/join', async function (req, res, next) {
+  try{
+    if(!req.session.user) return res.redirect('/auth/login');
+    var me = req.session.user;
+
+    // 1) 폼에서 받은 코드 다듬기 - 사용자가 소문자/공백 입력할 수 있으니 다듬기. (공백 제거 + 소문자 대문자 변환)
+    var code = (req.body.code || '').trim().toUpperCase();
+
+    // 2) 빈 입력 방어 - 로비 리다리렉트
+    if(!code) {
+      req.flash('error', '초대코드를 입력하세요.');
+      return res.redirect('/room');
+    }
+
+    // 3) 코드로 방 조회
+    var [rooms] = await pool.query(
+      'SELECT id FROM rooms WHERE invite_code = ?',
+      [code]
+    );
+
+    // 4) 없는 코드만 입장 실패 처리
+    if (rooms.length === 0){
+      req.flash('error', '존재하지 않는 초대코드 입니다');
+      return res.redirect('/room');
+    }
+    var roomId = rooms[0].id; //! 조회된 첫 번째 방 객체에서 방의 id 값 저장해두기
+
+    // 5) 나를 그 방으로 이동 ("한 방만" 제약)
+    await pool.query(
+      'UPDATE users SET current_room_id = ? WHERE id = ?',
+      [roomId, me.id] // 아까 조회한 roomId 활용
+    );
+
+    // 6) 방 화면으로
+    res.redirect('/room');
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /room/leave 처리 - 방 나가기 (로비로 복귀)
+router.post('/leave', async function (req, res, next){
+  try{
+    if (!req.session.user) return res.redirect('/auth/login');
+    var me = req.session.user;
+
+    // current_room_id 를 NULL 로 → GET /room 이 로비를 렌더
+    await pool.query(
+      'UPDATE users SET current_room_id = NULL WHERE id = ?',
+      [me.id]
+    );
+
     res.redirect('/room');
   } catch (err){
     next(err);

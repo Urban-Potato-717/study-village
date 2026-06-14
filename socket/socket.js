@@ -1,5 +1,4 @@
-// socket/socket.js
-// Socket.IO 이벤트 핸들러 — MVP: 좌석 점유 영속화
+// Socket.IO 이벤트 핸들러
 
 var pool = require('../db/connection');
 
@@ -29,7 +28,7 @@ async function loadSeatPayload(roomId, userId, seatNumber) {
   };
 }
 
-// bin/www 에서 registerSocket(io) 형태로 호출됩니다.
+// bin/www 에서 registerSocket(io) 형태로 호출
 module.exports = function (io) { // bin/www에서 io 받음 (소켓 서버 받기)
   io.on('connection', function (socket) { //! 누군가 소켓 연결 시 마다 실행 ...
     console.log('socket 연결:', socket.id);

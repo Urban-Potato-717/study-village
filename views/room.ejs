@@ -47,16 +47,62 @@
 
     <!-- 사이드바 (방 정보/내 캐릭터 + 시작 종료/알진행도/오늘 기록) -->
     <aside class="sidebar">
-      <!-- 방 정보 -->
-      <div class="panel">
-        <div class="panel-row">
-          <span class="panel-label">현재 인원</span>
-          <span class="panel-value">
-            <%= seats.filter(function (s) { return s.occupied; }).length %>
-            / <%= room.capacity %>명
-          </span>
+      <!-- 입장 실패 등 flash 에러 -->
+      <% if (locals.error && error.length) { %>
+        <div class="panel error-message"><%= error.join(' ') %></div>
+      <% } %>
+
+      <!-- 방/로비 분기 패널 -->
+      <% if (isLobby) { %>
+        <!-- 로비: 방 만들기 + 초대코드로 입장 -->
+        <div class="panel room-actions">
+          <h3>팀방</h3>
+          <form action="/room/create" method="POST" class="room-form">
+            <input type="text" name="name" placeholder="방 이름 (선택)" maxlength="30" />
+            <button type="submit" class="btn-primary">방 만들기</button>
+          </form>
+          <form action="/room/join" method="POST" class="room-form">
+            <input type="text" name="code" placeholder="초대코드 6자리" maxlength="6" required />
+            <button type="submit" class="btn-secondary">코드로 입장</button>
+          </form>
         </div>
-      </div>
+      <% } else { %>
+        <!-- private 방: 초대코드 표시 + 나가기 -->
+        <div class="panel room-actions">
+          <h3>초대코드</h3>
+          <div class="invite-code"><%= room.invite_code %></div>
+          <p class="hint">이 코드를 팀원에게 공유하세요.</p>
+          <form action="/room/leave" method="POST"
+                onsubmit="return confirm('방에서 나가 로비로 돌아갈까요?');">
+            <button type="submit" class="btn-secondary">방 나가기</button>
+          </form>
+        </div>
+      <% } %>
+
+      <!-- 방 인원 목록 (private 방 전용, 4초 폴링으로 갱신) -->
+      <% if (!isLobby) { %>
+        <div class="panel">
+          <div class="panel-row">
+            <span class="panel-label">방 인원</span>
+            <span class="panel-value">
+              <span id="member-count"><%= members.length %></span> / <%= room.capacity %>명
+            </span>
+          </div>
+          <ul class="member-list" id="member-list"
+              data-host-id="<%= room.host_user_id || '' %>">
+            <% members.forEach(function (m) { %>
+              <li class="member-item <%= m.isMe ? 'me' : '' %>">
+                <span class="member-emoji"><%= m.emoji %></span>
+                <span class="member-nick"><%= m.nickname %></span>
+                <% if (m.id === room.host_user_id) { %>
+                  <span class="member-host">방장</span>
+                <% } %>
+                <% if (m.isMe) { %><span class="member-you">나</span><% } %>
+              </li>
+            <% }); %>
+          </ul>
+        </div>
+      <% } %>
 
       <!-- 내 캐릭터 + 시작/종료 -->
       <div class="panel my-panel">
