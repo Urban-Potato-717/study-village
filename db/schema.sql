@@ -136,21 +136,21 @@ CREATE TABLE IF NOT EXISTS seat_occupancy (
 -- 보통 SELECT는 "데이터 가져와"인데 여긴 다름
 -- SELECT 값 WHERE 조건 — 조건이 참일 때만 그 값을 반환.
 INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
-SELECT '뿡뿡이', '/images/characters/c1.png', '', 'N', 100
-WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '뿡뿡이');
+SELECT '말랑이', '/images/characters/c1.png', '🟢', 'N', 100
+WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '말랑이');
 
 INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
-SELECT '펭이', '/images/characters/c2.png', '', 'N', 100
-WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '펭이');
+SELECT '동글이', '/images/characters/c2.png', '🧑', 'N', 100
+WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '동글이');
 
 INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
-SELECT '여우공주', '/images/characters/c3.png', '', 'R', 40
-WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '여우공주');
+SELECT '별마법사', '/images/characters/c3.png', '🧙', 'R', 40
+WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '별마법사');
 
 INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
-SELECT '곰돌이', '/images/characters/c4.png', '', 'R', 40
-WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '곰돌이');
+SELECT '강철기사', '/images/characters/c4.png', '🛡️', 'R', 40
+WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '강철기사');
 
 INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
-SELECT '황금용', '/images/characters/c5.png', '', 'SR', 20
-WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '황금용');
+SELECT '불꽃마왕', '/images/characters/c5.png', '👹', 'SR', 20
+WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '불꽃마왕');
