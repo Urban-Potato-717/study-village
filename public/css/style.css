@@ -223,6 +223,10 @@ button { padding: 8px 14px; cursor: pointer; }
 #status.status-studying { color: #E23B3B; font-weight: 700; }
 #status.status-break    { color: #2E9E5B; font-weight: 700; }
 
+/*! 0.4v 방장 그룹 타이머: 방장 전용 전체 시작/종료 버튼 묶음 */
+.group-timer { display: flex; gap: 8px; margin-bottom: 8px; }
+.group-timer button { flex: 1; }
+
 /* ─── 진행 바 ─────────────────────────────────────── */
 .progress {
   width: 100%;
