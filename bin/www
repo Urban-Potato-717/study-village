@@ -1,27 +1,20 @@
-//  #!/usr/bin/env node // 리눅스/맥 OS 실행용
-
-// bin/www: 서버를 실행 스크립트
-// app.js(서버 본체)를 require해서 http 서버로 감쌈
+// object: 서버의 부트 및 HTTP 서버와 WebSocket 서버를 붙이는 역할을 수행한다
+// app.js(서버 본체)를 require -> http 서버로 감쌈
 
 var app  = require('../app');   // app.js를 모듈로 불러옴
 var http = require('http');     // Node.js 내장 http 모듈
-
-// process.env.PORT가 있으면 그 값, 없으면 기본값 3000
-// app.set('port', port)로 포트 값을 app 전역에 저장
 var port = process.env.PORT || '3000';
-app.set('port', port);
+app.set('port', port);          // app.set('port', port)로 포트 값을 app 전역에 저장
 
 // http.createServer(app) — app이 콜백 함수 역할하는 HTTP 서버 객체 만들기.
 var server = http.createServer(app);
 
-//! ─── Socket.IO 연결 ───────────────────────────
-// 같은 http 서버에 Socket.IO를 붙임
+//! Socket.IO 연결 - HTTP 서버와 WebSocket 서버가 같은 포트 공유
 var { Server }     = require('socket.io');
-var io             = new Server(server); // 소켓 기능을 기존 HTTP 서버에 붙이기
+var io             = new Server(server); // 소켓 기능 -> 기존 HTTP 서버에 붙이기
 var registerSocket = require('../socket/socket');
 registerSocket(io); //socket을 등록.
-app.set('io', io); // 라우터에서 req.app.get('io') 로 broadcast 할 수 있도록 app 객체에 보관
-//!───────────────────────────────────────────────
+app.set('io', io);  // * 라우터에서 req.app.get('io') 로 broadcast 할 수 있도록 app 객체에 보관 *
 
 // server.listen으로 포트 연결
 server.listen(port, function () {
