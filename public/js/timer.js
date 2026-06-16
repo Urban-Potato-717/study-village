@@ -1,6 +1,8 @@
 // public/js/timer.js
 // 공부 시작/종료 버튼 + 서버 시각 기준 경과 시간 표시
-// 0.3v 포모도로 모드 추가
+// 0.3v 추가: (1) 포모도로 모드(스톱워치↔포모도로 토글, 공부/휴식 자동 순환)
+//            (2) 부화 신호 — 종료 응답에 justHatched 가 오면 sessionStorage 에 저장,
+//               도감 페이지(characters.js)가 1회 소비해 폭죽 연출
 
 (function () {
   var btnStart = document.getElementById('btn-start');
@@ -121,7 +123,7 @@
           + Math.floor(data.egg.required / 60) + '분 (' + pct + '%)';
       }
 
-      // 부화 시 도감 페이지에서 축하 연출을 띄우기 위한 신호 저장 (페이지 이동 후 1회 소비)
+      //* 0.3v 부화 신호: 도감 페이지에서 폭죽 연출을 띄우기 위한 신호 저장 (페이지 이동 후 1회 소비)
       if (data.egg && data.egg.justHatched && data.egg.newCharacter) {
         sessionStorage.setItem('justHatched', JSON.stringify({
           id: data.egg.newCharacter.id,

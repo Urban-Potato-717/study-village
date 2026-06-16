@@ -1,5 +1,6 @@
 // public/js/characters.js
-// 도감 진입 시, 방금 부화한 캐릭터가 있으면 폭죽 + 카드 해금 연출을 1회 재생.
+// 0.3v 신규: 부화 축하 연출 — 도감 진입 시 방금 부화한 캐릭터가 있으면
+//            폭죽(canvas-confetti) + 카드 해금 애니메이션을 1회 재생.
 // 신호는 timer.js 가 부화 시 sessionStorage('justHatched') 에 저장해 둔다.
 
 (function () {

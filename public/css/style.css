@@ -219,7 +219,7 @@ button { padding: 8px 14px; cursor: pointer; }
 }
 .hint { margin: 4px 0; font-size: 12px; color: var(--muted); }
 
-/* 타이머 상태 텍스트: 대기는 기본색, 공부 중=빨강, 휴식 중=초록 */
+/*! 0.3v 포모도로: 타이머 상태 텍스트 — 대기는 기본색, 공부 중=빨강, 휴식 중=초록 */
 #status.status-studying { color: #E23B3B; font-weight: 700; }
 #status.status-break    { color: #2E9E5B; font-weight: 700; }
 
@@ -279,7 +279,7 @@ th { background: #FAF7EE; color: var(--muted); font-weight: 600; }
 .character-card:hover { transform: translateY(-2px); }
 .character-card.locked { opacity: 0.25; filter: grayscale(1); }
 
-/* 부화 직후 해금 연출: 뿅 튀어나오며 황금 글로우 (약 1.6초) */
+/*! 0.3v 부화 연출: 도감 카드가 뿅 튀어나오며 황금 글로우 (약 1.6초) */
 .character-card.just-hatched {
   animation: card-hatch 0.7s ease-out, card-glow 1.6s ease-out;
   z-index: 1;

@@ -1,4 +1,6 @@
 <!--* 방 안에 들어왔을 때 보는 화면 -->
+<!--* 0.3v 추가: 로비(방 만들기/코드 입장) ↔ private 방(초대코드/나가기) 분기,
+                방 인원 목록(폴링 갱신), 포모도로 모드 토글 버튼 + 단계 라벨 -->
 
 <!DOCTYPE html>
 <html lang="ko">
@@ -126,7 +128,7 @@
             </div>
           </div>
         </div>
-        <!-- 모드 토글: 스톱워치 ↔ 포모도로 (timer.js 가 data-mode 로 상태 보유) -->
+        <!--! 0.3v 포모도로: 모드 토글 (timer.js 가 data-mode 로 상태 보유) -->
         <button id="btn-mode" class="btn-secondary" data-mode="stopwatch">
           모드: 스톱워치 ⏱
         </button>
@@ -137,7 +139,7 @@
           공부 종료
         </button>
         <p class="hint">상태: <span id="status">대기</span></p>
-        <!-- 포모도로 단계 라벨: 스톱워치 모드에선 숨김 -->
+        <!--! 0.3v 포모도로: 단계 라벨(공부/휴식) — 스톱워치 모드에선 숨김 -->
         <p class="hint" id="phase-label" style="display: none;">단계: <span id="phase-name">공부</span></p>
         <p class="hint">경과 시간: <span id="elapsed">00:00:00</span></p>
         <p class="hint" id="seat-hint">좌석을 먼저 선택하세요.</p>
