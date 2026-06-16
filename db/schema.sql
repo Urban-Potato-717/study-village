@@ -130,27 +130,41 @@ CREATE TABLE IF NOT EXISTS seat_occupancy (
 
 -- ! 혼자 개발해서 마이그레이션 기능은 삭제함.
 
--- 캐릭터 시드 5종
+-- 캐릭터 시드 9종 (Kenney Tiny Dungeon 스프라이트)
 -- WHERE NOT EXISTS 로 멱등성 확보
--- image_path 는 추후 PNG 에셋이 준비되면 사용
--- 보통 SELECT는 "데이터 가져와"인데 여긴 다름
--- SELECT 값 WHERE 조건 — 조건이 참일 때만 그 값을 반환.
+-- rarity: N 4종 / R 4종 / SR 1종, drop_weight: N=100 R=40 SR=20
 INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
-SELECT '말랑이', '/images/characters/c1.png', '🟢', 'N', 100
-WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '말랑이');
+SELECT '농부', '/images/characters/farmer.png', '🌾', 'N', 100
+WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '농부');
 
 INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
-SELECT '동글이', '/images/characters/c2.png', '🧑', 'N', 100
-WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '동글이');
+SELECT '슬라임', '/images/characters/slime.png', '🟢', 'N', 100
+WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '슬라임');
 
 INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
-SELECT '별마법사', '/images/characters/c3.png', '🧙', 'R', 40
-WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '별마법사');
+SELECT '박쥐', '/images/characters/bat.png', '🦇', 'N', 100
+WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '박쥐');
 
 INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
-SELECT '강철기사', '/images/characters/c4.png', '🛡️', 'R', 40
-WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '강철기사');
+SELECT '대장장이', '/images/characters/smith.png', '🔨', 'N', 100
+WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '대장장이');
 
 INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
-SELECT '불꽃마왕', '/images/characters/c5.png', '👹', 'SR', 20
-WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '불꽃마왕');
+SELECT '기사', '/images/characters/knight.png', '🛡️', 'R', 40
+WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '기사');
+
+INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
+SELECT '마법사', '/images/characters/mage.png', '🧙', 'R', 40
+WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '마법사');
+
+INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
+SELECT '유령', '/images/characters/ghost.png', '👻', 'R', 40
+WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '유령');
+
+INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
+SELECT '공주', '/images/characters/princess.png', '👸', 'R', 40
+WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '공주');
+
+INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
+SELECT '대마왕', '/images/characters/demonlord.png', '👹', 'SR', 20
+WHERE NOT EXISTS (SELECT 1 FROM characters WHERE name = '대마왕');

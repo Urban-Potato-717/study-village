@@ -1,4 +1,4 @@
-// Object: 초대 코드 발급 -> rooms에 INSERT 이름 + host_id 혹은 invite_code=[code] -> 나를 그 방으로 이동 -> /room redirect
+// 0.3v Object: 초대 코드 발급 -> rooms에 INSERT 이름 + host_id 혹은 invite_code=[code] -> 나를 그 방으로 이동 -> /room redirect
 
 var express = require('express');
 var router  = express.Router();
@@ -261,6 +261,76 @@ router.post('/leave', async function (req, res, next){
 
     res.redirect('/room');
   } catch (err){
+    next(err);
+  }
+});
+
+//* POST /room/group/start - 방장이 방 전원에게 "공부 시작" 신호탄
+router.post('/group/start', async function (req, res, next) {
+  try{
+    // 1) 로그인 체크 (JSON 응답 - study.js requireLogin 패턴 참고!)
+    if(!req.session.user) return res.status(401).json({ok: false, message: '로그인이 필요합니다.'});
+    var me = req.session.user;
+
+    // 2) 내 현재 방 id 조회 - DB에서 direct로
+    var [userRows] = await pool.query(
+      'SELECT current_room_id FROM users WHERE id = ?',
+      [me.id]
+    );
+    var roomId = userRows[0] ? userRows[0].current_room_id : null; //! 삼항 연산자
+    if (!roomId) return res.status(400).json({ ok: false, message: '방에 속해 있지 않습니다.' });
+
+    // 3) 해당 방의 방장 조회 - 내가 방장인지 검증해보기
+    var [roomRows] = await pool.query(
+      'SELECT host_user_id FROM rooms WHERE id = ?',
+      [roomId]
+    );
+    if (roomRows.length === 0 || roomRows[0].host_user_id !== me.id) {
+      return res.status(403).json({ ok: false, message: '방장만 가능합니다.' });
+    }
+
+    // 4) 방 전체에 시작 신호 브로드캐스트 (이것도 study.js line 60, 69 참조)
+    var io = req.app.get('io');
+    if (io) io.to('room-' + roomId).emit('groupStart', {});
+
+    // 5) 응답
+    res.json({ok: true});
+  } catch(err){
+    next(err);
+  }
+});
+
+//* POST /room/group/end - 방장이 방 전원에게 "공부 종료" 신호를 쏨 (start 와 동일, emit 만 다름)
+router.post('/group/end', async function (req, res, next) {
+  try {
+    // 1) 로그인 체크
+    if (!req.session.user) return res.status(401).json({ ok: false, message: '로그인이 필요합니다.' });
+    var me = req.session.user;
+
+    // 2) 내 현재 방 id 조회
+    var [userRows] = await pool.query(
+      'SELECT current_room_id FROM users WHERE id = ?',
+      [me.id]
+    );
+    var roomId = userRows[0] ? userRows[0].current_room_id : null;
+    if (!roomId) return res.status(400).json({ ok: false, message: '방에 속해 있지 않습니다.' });
+
+    // 3) 방장 검증
+    var [roomRows] = await pool.query(
+      'SELECT host_user_id FROM rooms WHERE id = ?',
+      [roomId]
+    );
+    if (roomRows.length === 0 || roomRows[0].host_user_id !== me.id) {
+      return res.status(403).json({ ok: false, message: '방장만 가능합니다.' });
+    }
+
+    // 4) 방 전체에 종료 신호 브로드캐스트
+    var io = req.app.get('io');
+    if (io) io.to('room-' + roomId).emit('groupEnd', {});
+
+    // 5) 응답
+    res.json({ ok: true });
+  } catch (err) {
     next(err);
   }
 });

@@ -56,13 +56,12 @@
     }
   }
 
-  btnStart.addEventListener('click', async function () {
-    //! 포모도로 모드면 전용 시작 함수로 빠짐 (아래 스톱워치 코드 건너뜀)
-    if (mode === 'pomodoro') { startPomodoro(); return; }
-
+  // 스톱워치 시작 본체. silent=true 면 좌석 없을 때 alert 없이 조용히 종료(그룹 시작용)
+  async function startStopwatch(silent) {
+    if (currentLogId) return; // 이미 진행 중이면 무시(그룹 신호 중복 방어)
     var sv = window.studyVillage || {};
     if (!sv.selectedSeatNumber) {
-      alert('좌석을 먼저 선택하세요.');
+      if (!silent) alert('좌석을 먼저 선택하세요.');
       return;
     }
     try {
@@ -76,7 +75,7 @@
       });
       var data = await res.json();
       if (!data.ok) {
-        alert(data.message || '공부 시작 실패');
+        if (!silent) alert(data.message || '공부 시작 실패');
         return;
       }
       currentLogId = data.logId;
@@ -87,8 +86,14 @@
       tickId = setInterval(tick, 1000);
     } catch (err) {
       console.error(err);
-      alert('네트워크 에러가 발생했습니다.');
+      if (!silent) alert('네트워크 에러가 발생했습니다.');
     }
+  }
+
+  btnStart.addEventListener('click', function () {
+    //! 포모도로 모드면 전용 시작 함수로 빠짐 (아래 스톱워치 코드 건너뜀)
+    if (mode === 'pomodoro') { startPomodoro(); return; }
+    startStopwatch(false);
   });
 
   async function endSession(showAlert) {
@@ -242,6 +247,15 @@
     btnMode.textContent = (mode === 'pomodoro') ? '모드: 포모도로 🍅' : '모드: 스톱워치 ⏱';
     if (phaseLabel) phaseLabel.style.display = (mode === 'pomodoro') ? '' : 'none';
   });
+
+  //* 0.4v 방장 그룹 타이머: room.js 가 socket 'groupStart'/'groupEnd' 수신 시 호출.
+  //  방장이 쏜 신호를 받은 각 클라가 "자기" 세션을 시작/종료 → study_logs·알 진행은 각자 유지.
+  window.studyTimer = {
+    // 좌석 안 고른 멤버는 startStopwatch 가 silent 로 조용히 건너뜀
+    groupStart: function () { startStopwatch(true); },
+    // 진행 중인 세션이 있으면 종료(없으면 endSession 이 즉시 return)
+    groupEnd: function () { endSession(true); },
+  };
 
   // 페이지 떠날 때 진행 중이면 종료 호출 (best-effort)
   window.addEventListener('beforeunload', function () {
