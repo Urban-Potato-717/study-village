@@ -1,6 +1,6 @@
-/* public/css/style.css
-   담당: 오유진(원본), 김준영(MVP 통합)
-   공부 마을 테마 — 베이지 배경, 흰 카드, 노란 강조 */
+/* public/css/style.css 공부 마을 테마 — 베이지 배경, 흰 카드, 노란 강조 */
+/* 한글 픽셀(도트) 폰트 — Galmuri */
+@import url('https://cdn.jsdelivr.net/gh/quiple/galmuri/dist/galmuri.css');
 
 :root {
   --beige: #FAF3E0;
@@ -17,18 +17,22 @@
 * { box-sizing: border-box; }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Pretendard", sans-serif;
+  font-family: "Galmuri11", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   margin: 0;
   padding: 24px;
   background: #fafafa;
   color: var(--ink);
+  letter-spacing: 0.3px;
 }
 
 body.village-bg {
-  background: var(--beige);
+  background-color: var(--beige);
+  /* 던전 바닥 타일을 깔되, 반투명 베이지 오버레이로 은은하게 — 카드/텍스트 가독성 유지 */
   background-image:
-    radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px);
-  background-size: 18px 18px;
+    linear-gradient(rgba(250, 243, 224, 0.86), rgba(250, 243, 224, 0.86)),
+    url('/images/tiles/floor.png');
+  background-size: auto, 48px 48px;
+  image-rendering: pixelated;
 }
 
 .page-header {
@@ -79,9 +83,15 @@ button { padding: 8px 14px; cursor: pointer; }
 
 .seat-cell {
   aspect-ratio: 1;
-  background: #FCFCFC;
-  border: 2px dashed #D8D8D8;
-  border-radius: 12px;
+  position: relative;
+  /* 던전 바닥 타일을 좌석 배경으로 */
+  background-color: #caa06a;
+  background-image: url('/images/tiles/floor.png');
+  background-size: 38px 38px;
+  image-rendering: pixelated;
+  border: 3px solid #4a3826;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -89,15 +99,53 @@ button { padding: 8px 14px; cursor: pointer; }
   cursor: pointer;
   text-align: center;
   padding: 8px;
-  transition: transform 0.1s ease, border-color 0.15s ease, background 0.15s ease;
+  transition: transform 0.1s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
-.seat-cell:hover { transform: translateY(-2px); border-color: var(--accent); }
-.seat-cell.occupied { background: #FFF7DC; border-style: solid; border-color: #E8C97A; cursor: default; }
-.seat-cell.mine     { border-color: var(--accent-dark); background: #FFE9A8; }
-.seat-cell.selected { outline: 3px solid var(--accent); outline-offset: 2px; }
+.seat-cell:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.12), 0 0 12px rgba(244, 196, 48, 0.6);
+}
+.seat-cell.occupied { cursor: default; border-color: #8a5b00; }
+.seat-cell.mine {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.12), 0 0 14px rgba(244, 196, 48, 0.85);
+}
+.seat-cell.selected {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.12), 0 0 0 3px var(--accent), 0 0 16px rgba(244, 196, 48, 0.9);
+}
 
-.seat-emoji { font-size: 2.4rem; line-height: 1; }
-.seat-nick  { margin-top: 6px; font-size: 12px; color: var(--ink); font-weight: 600; }
+/* 좌석 무대: 의자(바닥 레이어) 위에 캐릭터를 겹쳐 "착석" 연출 */
+.seat-emoji {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.seat-chair { width: 46px; height: 46px; image-rendering: pixelated; }
+.seat-char {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;                 /* 의자 좌면에 앉은 느낌으로 살짝 띄움 */
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  image-rendering: pixelated;
+  line-height: 1;
+}
+.seat-char.sprite-emoji { font-size: 1.9rem; width: auto; height: auto; }
+.seat-nick {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(40, 30, 20, 0.65);
+  padding: 1px 7px;
+  border-radius: 6px;
+}
 .seat-status {
   margin-top: 4px;
   font-size: 10px;
@@ -171,6 +219,10 @@ button { padding: 8px 14px; cursor: pointer; }
 }
 .hint { margin: 4px 0; font-size: 12px; color: var(--muted); }
 
+/*! 0.3v 포모도로: 타이머 상태 텍스트 — 대기는 기본색, 공부 중=빨강, 휴식 중=초록 */
+#status.status-studying { color: #E23B3B; font-weight: 700; }
+#status.status-break    { color: #2E9E5B; font-weight: 700; }
+
 /* ─── 진행 바 ─────────────────────────────────────── */
 .progress {
   width: 100%;
@@ -226,6 +278,21 @@ th { background: #FAF7EE; color: var(--muted); font-weight: 600; }
 }
 .character-card:hover { transform: translateY(-2px); }
 .character-card.locked { opacity: 0.25; filter: grayscale(1); }
+
+/*! 0.3v 부화 연출: 도감 카드가 뿅 튀어나오며 황금 글로우 (약 1.6초) */
+.character-card.just-hatched {
+  animation: card-hatch 0.7s ease-out, card-glow 1.6s ease-out;
+  z-index: 1;
+}
+@keyframes card-hatch {
+  0%   { transform: scale(0.3); opacity: 0.2; }
+  60%  { transform: scale(1.18); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes card-glow {
+  0%   { box-shadow: 0 0 0 0 rgba(244, 196, 48, 0.9); }
+  100% { box-shadow: 0 0 0 22px rgba(244, 196, 48, 0); }
+}
 .character-emoji { font-size: 3rem; }
 .character-name { margin-top: 8px; font-weight: 600; }
 .character-rarity {
@@ -246,4 +313,126 @@ th { background: #FAF7EE; color: var(--muted); font-weight: 600; }
   .sidebar { position: static; }
   .seats-grid { grid-template-columns: repeat(3, 1fr); }
   .stat-cards { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ─── 팀방 / 로비 액션 패널 ───────────────────────── */
+.room-actions h3 { margin: 0 0 10px; }
+.room-form { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.room-form input {
+  padding: 8px 10px;
+  border: 1px solid var(--beige-dark);
+  border-radius: 6px;
+  font-size: 14px;
+}
+.room-form:last-child { margin-bottom: 0; }
+.invite-code {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  text-align: center;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: var(--beige-dark);
+  border-radius: 8px;
+  color: var(--accent-dark);
+  font-family: monospace;
+}
+.error-message { color: #C0392B; font-weight: 600; }
+
+/* ─── 방 인원 목록 ────────────────────────────────── */
+.member-list { list-style: none; margin: 10px 0 0; padding: 0; }
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+.member-item.me { background: #FFE9A8; }
+.member-emoji { font-size: 18px; }
+.member-nick { flex: 1; font-size: 14px; }
+.member-host {
+  font-size: 11px; font-weight: 700;
+  background: var(--accent); color: #5a4300;
+  padding: 1px 7px; border-radius: 999px;
+}
+.member-you {
+  font-size: 11px; font-weight: 700;
+  background: var(--accent-dark); color: #fff;
+  padding: 1px 7px; border-radius: 999px;
+}
+
+/* ─── 픽셀 스프라이트 (캐릭터 PNG + 이모지 폴백) ───── */
+.sprite-img {
+  image-rendering: pixelated; /* 16px 원본을 키워도 또렷한 도트 유지 */
+  display: inline-block;
+  vertical-align: middle;
+}
+.sprite-emoji { line-height: 1; }
+
+.my-emoji .sprite-img   { width: 44px; height: 44px; }
+.character-sprite { min-height: 72px; display: flex; align-items: center; justify-content: center; }
+.character-sprite .sprite-img   { width: 64px; height: 64px; }
+.character-sprite .sprite-emoji { font-size: 3rem; }
+
+/* ─── 메인 히어로 랜딩 ─────────────────────────────── */
+.hero {
+  max-width: 720px;
+  margin: 6vh auto 0;
+  background: var(--paper);
+  border-radius: 22px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.10);
+  padding: 48px 40px 40px;
+  text-align: center;
+}
+.hero-title {
+  font-size: 42px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+.hero-title .accent { color: var(--accent-dark); }
+.hero-subtitle {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0 0 22px;
+  letter-spacing: 2px;
+}
+.hero-tagline { font-size: 16px; color: var(--muted); margin: 0 0 28px; line-height: 1.6; }
+
+.hero-sprites {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin: 0 0 32px;
+  flex-wrap: wrap;
+}
+.hero-sprites img {
+  width: 56px; height: 56px;
+  image-rendering: pixelated;
+  background: var(--beige);
+  border: 2px solid var(--beige-dark);
+  border-radius: 12px;
+  padding: 6px;
+  transition: transform 0.12s ease;
+}
+.hero-sprites img:hover { transform: translateY(-4px); }
+
+.hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.hero-btn {
+  display: inline-block;
+  text-decoration: none;
+  padding: 13px 28px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 15px;
+}
+.hero-btn.primary { background: var(--accent); color: var(--ink); box-shadow: 0 3px 0 var(--accent-dark); }
+.hero-btn.secondary { background: #fff; color: var(--ink); border: 2px solid var(--accent-dark); }
+.hero-welcome { font-size: 15px; color: var(--ink); margin: 0 0 20px; font-weight: 600; }
+.hero-withdraw {
+  margin-top: 22px;
+  background: none; border: none;
+  color: var(--danger); cursor: pointer;
+  text-decoration: underline; font: inherit; font-size: 12px;
 }

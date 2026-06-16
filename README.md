@@ -1,8 +1,5 @@
 # Study Village
-
 웹서버프로그래밍 팀 프로젝트 — 웹 기반 공동 학습 서비스.
-
-수업의 Express + EJS + MySQL 패턴을 그대로 따릅니다.
 
 ## 기술 스택
 
@@ -142,7 +139,7 @@ npm run dev
 
 콘솔에 `3000번 포트에서 서버 실행 중`이 뜨면 성공. 브라우저에서 [http://localhost:3000](http://localhost:3000) 접속.
 
-> 코드를 수정하면 nodemon이 자동으로 서버를 재시작해줍니다.
+> 코드를 수정하면 nodemon이 자동으로 서버를 재시작해줍니다. npm run dev로 서버 실행.
 
 ---
 
@@ -178,136 +175,84 @@ await pool.query('INSERT INTO users (username, password, nickname) VALUES (?, ?,
 
 ---
 
-## 🌿 GitHub 작업 흐름
+## 🌿 작업 → GitHub에 올리는 방법 (매번)
 
-### 기본 개념
-
-- `main`: 최종 제출/안정 버전
-- `develop`: 데모/테스트 기준 최신 버전
-- `feature/*`: 개인 작업 브랜치
-- `origin`: GitHub 원격 저장소의 별명
-- `merge`: 한 브랜치의 변경 내용을 다른 브랜치에 합치는 것
-- `Issue`: 해야 할 일, 버그, 기능 요청
-
-작업은 `develop`에 직접 하지 말고 본인 `feature/*` 브랜치에서 진행합니다. 작업이 끝나면 Pull Request로 `develop`에 합칩니다.
-
-### 1. 작업 시작 전: develop 최신화
+### 1. 작업 시작 전 — 항상 최신 develop 가져오기
 
 ```cmd
-git switch develop
+git checkout develop
 git pull origin develop
 ```
 
-- `git switch develop`: 내 컴퓨터에서 `develop` 브랜치로 이동
-- `git pull origin develop`: GitHub의 최신 `develop`을 내 컴퓨터에 반영
-
-### 2-A. 새 작업 브랜치 만들기
-
-새로운 작업을 시작할 때는 최신 `develop`에서 새 브랜치를 만듭니다.
+### 2. 본인 브랜치 만들고 이동
 
 ```cmd
-git switch develop
-git pull origin develop
-git switch -c feature/작업이름
-git push -u origin feature/작업이름
+:: 송정한
+git checkout -b feature/auth
+
+:: 임태균
+git checkout -b feature/timer
+
+:: 오유진
+git checkout -b feature/room
 ```
 
-예시:
-
-```cmd
-git switch -c feature/room-ui
-git push -u origin feature/room-ui
-```
-
-`-u`는 내 로컬 브랜치와 GitHub 브랜치를 연결하는 옵션입니다. 한 번 연결하면 다음부터는 `git push`, `git pull`만 써도 됩니다.
-
-### 2-B. 기존 작업 브랜치에서 이어서 작업하기
-
-이미 본인 브랜치가 있다면, 본인 브랜치에서 최신 `develop`을 합친 뒤 작업합니다.
-
-```cmd
-git fetch origin
-git switch feature/본인브랜치
-git merge origin/develop
-```
-
-- `git fetch origin`: GitHub의 최신 브랜치 정보를 가져오기
-- `git switch feature/본인브랜치`: 내 작업 브랜치로 이동
-- `git merge origin/develop`: 최신 `develop` 내용을 내 작업 브랜치에 합치기
-
-충돌이 나면 혼자 해결하지 말고 팀장에게 공유하세요.
+> 이미 브랜치를 만들어둔 경우엔 `git checkout feature/auth` 처럼 `-b` 없이 이동.
 
 ### 3. 본인이 맡은 파일만 수정
 
 위 **담당 역할** 표에 있는 파일만 건드리세요. **수정 금지 파일**은 아래 참고.
 
-### 4. 작업 후 상태 확인
+### 4. 변경사항 확인
 
 ```cmd
 git status
 git diff
 ```
 
-- `git status`: 어떤 파일이 수정됐는지 확인
-- `git diff`: 파일 안에서 정확히 무엇이 바뀌었는지 확인
+- `git status`: 어떤 파일이 바뀌었는지
+- `git diff`: 구체적으로 어디가 바뀌었는지
 
 내가 수정한 파일만 보이는지 꼭 확인하세요. 다른 파일이 보이면 팀장에게 문의.
 
-### 5. 작업 후 커밋
+### 5. 본인이 맡은 파일만 stage
 
-전체 변경을 올려도 되는 상황이면:
+전체(`git add .`) 대신 **파일을 직접 지정**하는 게 안전해요:
 
 ```cmd
-git add .
-git commit -m "feat: 작업 내용"
+:: 예시 — 송정한
+git add routes/auth.js views/login.ejs views/register.ejs
 ```
 
-특정 파일만 올리고 싶으면:
+### 6. 커밋
 
 ```cmd
-git add routes/auth.js views/login.ejs views/register.ejs
 git commit -m "feat: 로그인 기능 구현"
 ```
 
 커밋 메시지 규칙:
-
 - `feat:` 새 기능 추가
 - `fix:` 버그 수정
-- `docs:` 문서 수정
 - `style:` CSS / 화면 디자인 수정
-- `refactor:` 코드 구조 개선
-- `chore:` 설정 / 기타 작업
+- `chore:` 그 외 자잘한 작업
 
-### 6. GitHub에 올리기
-
-처음 push 때 `-u`로 연결했다면:
+### 7. GitHub에 push
 
 ```cmd
-git push
+git push origin feature/auth
 ```
 
-연결하지 않았다면:
+(처음 push일 때는 `git push -u origin feature/auth`로 한 번만)
 
-```cmd
-git push origin feature/작업이름
-```
-
-### 7. GitHub에서 Pull Request 생성
+### 8. GitHub에서 Pull Request 생성
 
 1. 본인 저장소 페이지([https://github.com/Urban-Potato-717/study-village](https://github.com/Urban-Potato-717/study-village)) 들어가기
-2. `Compare & pull request` 클릭
-3. **base 브랜치를 `develop`으로 변경** (기본값이 `main`일 수 있으니 주의)
+2. 노란 배너 `Compare & pull request` 클릭
+3. **base 브랜치를 `develop` 으로 변경** (기본값이 main일 수 있으니 주의)
 4. 제목과 설명 적고 **Create pull request**
-5. 팀장(김준영)이 확인 후 `develop`에 merge
+5. 팀장(김준영)이 확인 후 develop에 merge → develop에서 정상 작동이 확인되면 별도로 main에 promote
 
-merge가 끝나면 다음 작업은 다시 `develop` 최신화부터 시작합니다.
-
-```cmd
-git switch develop
-git pull origin develop
-```
-
-핵심: 작업 전 `develop` 최신화, 작업은 `feature/*`에서, 끝나면 push 후 PR.
+merge가 끝나면 다시 1번부터 시작 (`git checkout develop → git pull`).
 
 ---
 

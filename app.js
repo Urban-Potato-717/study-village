@@ -69,7 +69,7 @@ app.use(function (req, res, next) {
   res.status(404).send('페이지를 찾을 수 없습니다.');
 });
 
-// 에러 핸들러 : 매개변수가 (err, req, res, next) 4개
+// 에러 핸들러 : 매개변수가 (err, req, res, next) 4개 - catch(err) 발생시 여기로 옴
 app.use(function (err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error   = req.app.get('env') === 'development' ? err : {};

@@ -1,5 +1,3 @@
-// public/js/room.js
-// 담당: 오유진(UI), 김준영(MVP 통합)
 // 학습방 좌석 클릭 + Socket.IO 좌석 상태 공유
 
 (function () {
@@ -35,7 +33,7 @@
       cell.classList.add('occupied');
       if (payload.user.id === userId) cell.classList.add('mine');
       else cell.classList.remove('mine');
-      emojiEl.textContent = payload.user.emoji || '';
+      setSeatStage(emojiEl, payload.user);
       nickEl.textContent  = payload.user.nickname || '익명';
 
       if (!statusEl) {
@@ -52,10 +50,90 @@
                                        : '대기';
     } else {
       cell.classList.remove('occupied', 'mine');
-      emojiEl.textContent = '';
+      setSeatStage(emojiEl, null);
       nickEl.textContent  = '좌석 ' + seatNumber;
       if (statusEl) statusEl.remove();
     }
+  }
+
+  // 좌석 무대 구성: 의자(바닥)는 항상 깔고, 점유 시 캐릭터를 그 위에 겹쳐 그림
+  function setSeatStage(container, user) {
+    container.innerHTML = '<img class="seat-chair" src="/images/tiles/chair.png" alt="좌석" />';
+    if (!user) return;
+
+    if (user.imagePath) {
+      var img = document.createElement('img');
+      img.className = 'seat-char sprite-img';
+      img.src = user.imagePath;
+      img.alt = '';
+      img.onerror = function () {
+        img.remove();
+        container.appendChild(makeSeatEmoji(user.emoji));
+      };
+      container.appendChild(img);
+    } else {
+      container.appendChild(makeSeatEmoji(user.emoji));
+    }
+  }
+
+  // 이미지 로드 실패 시 좌석 위에 올릴 이모지 폴백 요소
+  function makeSeatEmoji(emoji) {
+    var span = document.createElement('span');
+    span.className = 'seat-char sprite-emoji';
+    span.textContent = emoji || '';
+    return span;
+  }
+
+  // ─── 방 인원 목록 (private 방 전용, 4초 폴링으로 갱신) ─
+  var memberListEl  = document.getElementById('member-list');
+  var memberCountEl = document.getElementById('member-count');
+  var hostId = memberListEl ? parseInt(memberListEl.getAttribute('data-host-id'), 10) : NaN;
+
+  function renderMembers(members) {
+    if (memberCountEl) memberCountEl.textContent = members.length;
+    if (!memberListEl) return;
+    memberListEl.innerHTML = '';
+    members.forEach(function (m) {
+      var li = document.createElement('li');
+      li.className = 'member-item' + (m.id === userId ? ' me' : '');
+
+      var emoji = document.createElement('span');
+      emoji.className = 'member-emoji';
+      emoji.textContent = m.emoji || '';
+      li.appendChild(emoji);
+
+      var nick = document.createElement('span');
+      nick.className = 'member-nick';
+      nick.textContent = m.nickname;
+      li.appendChild(nick);
+
+      if (m.id === hostId) {
+        var host = document.createElement('span');
+        host.className = 'member-host';
+        host.textContent = '방장';
+        li.appendChild(host);
+      }
+      if (m.id === userId) {
+        var you = document.createElement('span');
+        you.className = 'member-you';
+        you.textContent = '나';
+        li.appendChild(you);
+      }
+      memberListEl.appendChild(li);
+    });
+  }
+
+  // 서버에서 현재 방 인원 JSON 을 받아 다시 그림
+  function pollMembers() {
+    fetch('/room/members', { headers: { 'Accept': 'application/json' } })
+      .then(function (res) { return res.json(); })
+      .then(function (data) { if (data && data.members) renderMembers(data.members); })
+      .catch(function () {}); // 일시적 네트워크 오류는 무시
+  }
+
+  // member-list 가 있는 페이지(=private 방)에서만 폴링 시작
+  if (memberListEl) {
+    setInterval(pollMembers, 2000); // 2초마다 갱신 (초기 목록은 서버 렌더로 이미 있음) - 시연 규모에서는 폴링 2초도 괜찮을듯
   }
 
   function setSelectedSeat(seatNumber) {
