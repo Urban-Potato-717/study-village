@@ -23,7 +23,13 @@ app.use(express.json());                            // JSON body를 req.body로 
 app.use(express.urlencoded({ extended: false }));   // HTML form body를 req.body로 읽게 해줌
 app.use(cookieParser(process.env.SESSION_SECRET));  // Cookie 헤더를 req.cookies로 읽게 해줌
 
-app.use(express.static(path.join(__dirname, 'public'))); // static: public 폴더를 정적 파일로 제공
+// static: public 폴더를 정적 파일로 제공
+// no-cache: 브라우저가 쓰기 전에 매번 서버에 확인 → 안 바뀐 파일은 304(빠름), 바뀐 파일은 F5만으로 최신
+// (강력 새로고침 없이도 js/css 변경이 바로 반영되게 함)
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: true,
+  setHeaders: function (res) { res.setHeader('Cache-Control', 'no-cache'); },
+}));
 
 app.use(session({           // express-session: 서버가 특정 브라우저/사용자에 대해 기억해두는 임시 저장소
   resave: false,            // 수정사항 없으면 다시 저장하지 않음
