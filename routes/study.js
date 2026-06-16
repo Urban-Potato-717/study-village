@@ -1,11 +1,9 @@
-// routes/study.js
-// (feature/timer 브랜치) — MVP 본구현은 김준영이 통합 PR로 작성
-// 공부 시작/종료 API + 알 부화 처리
+// Object: 공부 시작/종료 API + 알 부화 처리
 
 var express = require('express');
 var router  = express.Router();
-var pool    = require('../db/connection'); // db 연결
-var study   = require('../lib/study');     // 세션 시작/종료 공용 로직
+var pool    = require('../db/connection'); 
+var study   = require('../lib/study'); // 세션 시작/종료 공용 로직
 
 // 공통: 로그인 체크
 function requireLogin(req, res) {
@@ -33,9 +31,11 @@ router.post('/start', async function (req, res, next) {
       'SELECT user_id FROM seat_occupancy WHERE room_id = ? AND seat_number = ?',
       [roomId, seatNumber]
     );
-    if (existing.length > 0 && existing[0].user_id !== userId) {
+    // 누군가가 있음 - user_id !== userId
+    if (existing.length > 0 && existing[0].user_id !== userId) { 
       return res.status(409).json({ ok: false, message: '이미 점유된 좌석입니다.' });
     }
+    // 누군가 없음 - 내 Id로 앉기
     if (existing.length === 0) {
       await pool.query(
         'DELETE FROM seat_occupancy WHERE user_id = ?',
@@ -108,6 +108,7 @@ router.post('/end', async function (req, res, next) {
       'SELECT id, user_id, room_id, start_time, end_time FROM study_logs WHERE id = ?',
       [logId]
     );
+    // 내가 아님
     if (logRows.length === 0 || logRows[0].user_id !== userId) {
       return res.status(404).json({ ok: false, message: '해당 세션을 찾을 수 없습니다.' });
     }

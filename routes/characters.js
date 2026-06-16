@@ -1,5 +1,4 @@
 // routes/characters.js
-// (MVP 통합)
 // 도감 페이지 — 전체 캐릭터 + 획득 여부
 
 var express = require('express');

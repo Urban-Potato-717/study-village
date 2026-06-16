@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS user_characters (
 CREATE TABLE IF NOT EXISTS eggs (
   id               INT      NOT NULL AUTO_INCREMENT,
   user_id          INT      NOT NULL,
-  required_seconds INT      NOT NULL DEFAULT 60,   -- demo version time, 60sec
+  required_seconds INT      NOT NULL DEFAULT 60,   --TODO 시연 버전에서는 60초 후 부활
   progress_seconds INT      NOT NULL DEFAULT 0,
   is_active        BOOLEAN  NOT NULL DEFAULT TRUE,
   created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -131,7 +131,6 @@ CREATE TABLE IF NOT EXISTS seat_occupancy (
 -- ! 혼자 개발해서 마이그레이션 기능은 삭제함.
 
 -- 캐릭터 시드 9종 (Kenney Tiny Dungeon 스프라이트)
--- WHERE NOT EXISTS 로 멱등성 확보
 -- rarity: N 4종 / R 4종 / SR 1종, drop_weight: N=100 R=40 SR=20
 INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
 SELECT '농부', '/images/characters/farmer.png', '🌾', 'N', 100
