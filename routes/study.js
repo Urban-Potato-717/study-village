@@ -5,7 +5,7 @@
 var express = require('express');
 var router  = express.Router();
 var pool    = require('../db/connection'); // db 연결
-var rng     = require('../lib/rng');       // 캐릭터 랜덤 추첨
+var study   = require('../lib/study');     // 세션 시작/종료 공용 로직
 
 // 공통: 로그인 체크
 function requireLogin(req, res) {
@@ -52,14 +52,9 @@ router.post('/start', async function (req, res, next) {
       );
     }
 
-    //! 2) study_logs INSERT (start_time = NOW())
-    var [insertResult] = await pool.query(
-      'INSERT INTO study_logs (user_id, room_id, start_time) VALUES (?, ?, NOW())',
-      //study_logs 테이블에, 누가 공부했는지 / 어느 방에서 / 언제 시작했는지를 새로 저장한다.
-      //NOW(): MySQL이 현재 시간을 직접 넣어준다.
-      [userId, roomId]
-    );
-    var logId = insertResult.insertId;
+    //! 2) 세션 시작(좌석 focusing + study_logs INSERT)은 공용 헬퍼에 위임
+    //    좌석 점유 분기는 위 1)에서 이미 처리됨 — 헬퍼의 좌석 UPDATE는 중복이나 무해.
+    var logId = await study.startSession(pool, userId, roomId);
 
     // 3) 동일 좌석 정보 + 캐릭터로 브로드캐스트
     var io = req.app.get('io');
@@ -121,92 +116,10 @@ router.post('/end', async function (req, res, next) {
       return res.status(400).json({ ok: false, message: '이미 종료된 세션입니다.' });
     }
 
-    //! 2) 종료 시각 + duration 갱신
-    await pool.query(
-      'UPDATE study_logs SET end_time = NOW(),'
-      + ' duration = TIMESTAMPDIFF(SECOND, start_time, NOW()) WHERE id = ?',
-      [logId]
-    );
-    var [updated] = await pool.query(
-      'SELECT duration FROM study_logs WHERE id = ?', [logId]
-    );
-    var duration = updated[0].duration || 0;
+    //! 2) 종료 처리(duration/누적/좌석/알)는 공용 헬퍼에 위임
+    var result = await study.endSession(pool, log);
 
-    //! 3) 누적 시간 갱신
-    await pool.query(
-      'UPDATE users SET total_study_seconds = total_study_seconds + ? WHERE id = ?',
-      [duration, userId]
-    );
-    var [userRow] = await pool.query(
-      'SELECT total_study_seconds FROM users WHERE id = ?', [userId]
-    );
-    var totalSeconds = userRow[0].total_study_seconds;
-
-    // 4) 좌석 상태 → 대기
-    await pool.query(
-      'UPDATE seat_occupancy SET status = ? WHERE user_id = ?',
-      ['waiting', userId]
-    );
-
-    //! 5) 활성 알에 진행도 적용 + 부화 처리
-    var eggPayload = null;
-    var [eggRows] = await pool.query(
-      'SELECT id, required_seconds, progress_seconds FROM eggs'
-      + ' WHERE user_id = ? AND is_active = TRUE ORDER BY id ASC LIMIT 1',
-      [userId]
-    );
-    if (eggRows.length > 0) {
-      var egg = eggRows[0];
-      var newProgress = Math.min(egg.required_seconds, egg.progress_seconds + duration);
-      var justHatched = false;
-      var newCharacter = null;
-
-      if (newProgress >= egg.required_seconds) {
-        // 부화 처리
-        await pool.query(
-          'UPDATE eggs SET progress_seconds = required_seconds,'
-          + ' is_active = FALSE, hatched_at = NOW() WHERE id = ?',
-          [egg.id]
-        );
-        // 가중치 랜덤으로 1장 추첨 (전체 등급)
-        newCharacter = await rng.pickWeightedCharacter(pool, {});
-        if (newCharacter) {
-          await rng.grantCharacterAndMaybeRefreshCurrent(pool, userId, newCharacter.id);
-        }
-        // 다음 알 자동 지급
-        // TODO: 부화 시간은 60초(데모용). 보고서대로면 600초(10분)로 되돌릴 것.
-        await pool.query(
-          'INSERT INTO eggs (user_id, required_seconds, is_active) VALUES (?, 60, TRUE)',
-          [userId]
-        );
-        justHatched = true;
-
-        eggPayload = {
-          progress: 0,
-          required: 60,
-          justHatched: true,
-          newCharacter: newCharacter ? {
-            id: newCharacter.id,
-            name: newCharacter.name,
-            emoji: newCharacter.emoji,
-            rarity: newCharacter.rarity,
-            imagePath: newCharacter.image_path,
-          } : null,
-        };
-      } else {
-        await pool.query(
-          'UPDATE eggs SET progress_seconds = ? WHERE id = ?',
-          [newProgress, egg.id]
-        );
-        eggPayload = {
-          progress: newProgress,
-          required: egg.required_seconds,
-          justHatched: false,
-        };
-      }
-    }
-
-    // 6) 브로드캐스트
+    // 3) 브로드캐스트
     var io = req.app.get('io');
     if (io) {
       io.to('room-' + log.room_id).emit('studyStatusChanged', {
@@ -216,9 +129,8 @@ router.post('/end', async function (req, res, next) {
 
     res.json({
       ok: true,
-      duration: duration,
-      totalSeconds: totalSeconds,
-      egg: eggPayload,
+      duration: result.duration,
+      egg: result.egg,
     });
   } catch (err) {
     next(err);
