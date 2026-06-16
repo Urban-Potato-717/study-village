@@ -121,12 +121,20 @@
           + Math.floor(data.egg.required / 60) + '분 (' + pct + '%)';
       }
 
+      // 부화 시 도감 페이지에서 축하 연출을 띄우기 위한 신호 저장 (페이지 이동 후 1회 소비)
+      if (data.egg && data.egg.justHatched && data.egg.newCharacter) {
+        sessionStorage.setItem('justHatched', JSON.stringify({
+          id: data.egg.newCharacter.id,
+          name: data.egg.newCharacter.name,
+          rarity: data.egg.newCharacter.rarity,
+        }));
+      }
+
       if (showAlert) {
         var msg = '공부 시간: ' + Math.floor(data.duration / 60) + '분 '
                 + (data.duration % 60) + '초';
         if (data.egg && data.egg.justHatched && data.egg.newCharacter) {
-          msg += '\n\n알이 부화했습니다!\n'
-              + data.egg.newCharacter.name + ' (' + data.egg.newCharacter.rarity + ')';
+          msg += '\n\n새 알이 부화했습니다! 도감에서 확인하세요';
         }
         alert(msg);
       }

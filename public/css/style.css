@@ -278,6 +278,21 @@ th { background: #FAF7EE; color: var(--muted); font-weight: 600; }
 }
 .character-card:hover { transform: translateY(-2px); }
 .character-card.locked { opacity: 0.25; filter: grayscale(1); }
+
+/* 부화 직후 해금 연출: 뿅 튀어나오며 황금 글로우 (약 1.6초) */
+.character-card.just-hatched {
+  animation: card-hatch 0.7s ease-out, card-glow 1.6s ease-out;
+  z-index: 1;
+}
+@keyframes card-hatch {
+  0%   { transform: scale(0.3); opacity: 0.2; }
+  60%  { transform: scale(1.18); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@keyframes card-glow {
+  0%   { box-shadow: 0 0 0 0 rgba(244, 196, 48, 0.9); }
+  100% { box-shadow: 0 0 0 22px rgba(244, 196, 48, 0); }
+}
 .character-emoji { font-size: 3rem; }
 .character-name { margin-top: 8px; font-weight: 600; }
 .character-rarity {
