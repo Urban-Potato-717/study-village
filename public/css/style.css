@@ -283,6 +283,13 @@ th { background: #FAF7EE; color: var(--muted); font-weight: 600; }
 .character-card:hover { transform: translateY(-2px); }
 .character-card.locked { opacity: 0.25; filter: grayscale(1); }
 
+/*! 0.6v 캐릭터 선택: 보유 카드는 클릭 가능, 현재 선택된 캐릭터는 테두리로 강조 */
+.character-card.owned { cursor: pointer; }
+.character-card.current {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+
 /*! 0.3v 부화 연출: 도감 카드가 뿅 튀어나오며 황금 글로우 (약 1.6초) */
 .character-card.just-hatched {
   animation: card-hatch 0.7s ease-out, card-glow 1.6s ease-out;

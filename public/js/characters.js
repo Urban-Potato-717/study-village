@@ -34,3 +34,34 @@
     confetti({ particleCount: 140, spread: 90, origin: { y: 0.6 } });
   }
 })();
+
+// 0.6v 대표 캐릭터 변경 — 보유 카드(.owned) 클릭 → POST /characters/select
+//      성공 시 'current' 클래스(="대표" 뱃지)를 누른 카드로 옮긴다.
+(function () {
+  var grid = document.querySelector('.character-grid');
+  if (!grid) return;
+
+  grid.addEventListener('click', function (e) {
+    var card = e.target.closest('.character-card.owned'); // 보유한 카드만 선택 가능
+    if (!card) return;
+
+    var characterId = parseInt(card.getAttribute('data-character-id'), 10);
+    if (!characterId) return;
+    if (card.classList.contains('current')) return; // 이미 대표면 무시
+
+    fetch('/characters/select', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ characterId: characterId }),
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (!data.ok) { alert(data.message || '변경 실패'); return; }
+        // 기존 대표 표시 제거 후 누른 카드에 부여
+        var prev = grid.querySelector('.character-card.current');
+        if (prev) prev.classList.remove('current');
+        card.classList.add('current');
+      })
+      .catch(function () { alert('네트워크 에러가 발생했습니다.'); });
+  });
+})();

@@ -195,6 +195,30 @@
     socket.on('groupEnd', function () {
       if (window.studyTimer) window.studyTimer.groupEnd();
     });
+
+    //* 0.6v 도감에서 캐릭터를 바꾸면 사이드바 "내 캐릭터" 패널을 실시간 갱신 (좌석 타일은 seatUpdated가 처리)
+    socket.on('myCharacterChanged', function (data) {
+      if (!data || data.userId !== userId) return; // 내 것만
+      var stage = document.querySelector('.my-character .my-emoji');
+      if (stage) setSeatStageImage(stage, data); // 의자 없이 캐릭터만 (아래 헬퍼)
+      var nameEl = document.querySelector('.my-character .my-character-name');
+      if (nameEl) nameEl.textContent = data.characterName || '내 캐릭터';
+    });
+  }
+
+  // 캐릭터 스프라이트만 그리는 헬퍼 (사이드바 내 캐릭터 패널용 — 의자 없음)
+  function setSeatStageImage(container, data) {
+    container.innerHTML = '';
+    if (data.imagePath) {
+      var img = document.createElement('img');
+      img.className = 'sprite-img';
+      img.src = data.imagePath;
+      img.alt = '';
+      img.onerror = function () { img.remove(); container.appendChild(makeSeatEmoji(data.emoji)); };
+      container.appendChild(img);
+    } else {
+      container.appendChild(makeSeatEmoji(data.emoji));
+    }
   }
 
   //* 0.4v 방장 전용 "전체 시작/종료" 버튼 → 서버에 POST(방장 권한 검증) → 서버가 방 전체에 브로드캐스트
