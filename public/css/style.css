@@ -219,6 +219,10 @@ button { padding: 8px 14px; cursor: pointer; }
 }
 .hint { margin: 4px 0; font-size: 12px; color: var(--muted); }
 
+/* 타이머 상태 텍스트: 대기는 기본색, 공부 중=빨강, 휴식 중=초록 */
+#status.status-studying { color: #E23B3B; font-weight: 700; }
+#status.status-break    { color: #2E9E5B; font-weight: 700; }
+
 /* ─── 진행 바 ─────────────────────────────────────── */
 .progress {
   width: 100%;

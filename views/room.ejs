@@ -126,6 +126,10 @@
             </div>
           </div>
         </div>
+        <!-- 모드 토글: 스톱워치 ↔ 포모도로 (timer.js 가 data-mode 로 상태 보유) -->
+        <button id="btn-mode" class="btn-secondary" data-mode="stopwatch">
+          모드: 스톱워치 ⏱
+        </button>
         <button id="btn-start" class="btn-primary" disabled>
           공부 시작하기
         </button>
@@ -133,6 +137,8 @@
           공부 종료
         </button>
         <p class="hint">상태: <span id="status">대기</span></p>
+        <!-- 포모도로 단계 라벨: 스톱워치 모드에선 숨김 -->
+        <p class="hint" id="phase-label" style="display: none;">단계: <span id="phase-name">공부</span></p>
         <p class="hint">경과 시간: <span id="elapsed">00:00:00</span></p>
         <p class="hint" id="seat-hint">좌석을 먼저 선택하세요.</p>
       </div>
