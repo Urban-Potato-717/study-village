@@ -23,9 +23,12 @@
     </div>
   </section>
 
+  <!--* 0.6v 보유 캐릭터 클릭 시 내 캐릭터로 변경 → 학습방 좌석까지 즉시 반영. 선택된 건 'current'(테두리 강조) -->
+  <p class="hint">보유한 캐릭터를 누르면 그 캐릭터로 바뀝니다 (학습방에도 바로 반영).</p>
   <section class="character-grid">
     <% characters.forEach(function (c) { %>
-      <div class="character-card <%= c.owned ? 'owned' : 'locked' %>" data-character-id="<%= c.id %>">
+      <div class="character-card <%= c.owned ? 'owned' : 'locked' %> <%= c.id === currentCharacterId ? 'current' : '' %>"
+           data-character-id="<%= c.id %>">
         <div class="character-sprite">
           <img class="sprite-img" src="<%= c.image_path %>" alt="<%= c.name %>"
                onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block'" />
