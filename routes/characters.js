@@ -11,7 +11,8 @@ router.get('/', async function (req, res, next) {
     if (!req.session.user) return res.redirect('/auth/login');
     var userId = req.session.user.id;
 
-    // 전체 캐릭터 + 사용자 획득 여부 (LEFT JOIN)
+    //! 전체 캐릭터 + 사용자 획득 여부 (LEFT JOIN)
+    // 전체 캐릭터 9종을 기준으로, 내가 가진 것만 uc 쪽에 데이터가 붙고, 없으면 NULL.
     var [rows] = await pool.query(
       'SELECT c.id, c.name, c.emoji, c.image_path, c.rarity, c.drop_weight,'
       + ' uc.obtained_at, (uc.user_id IS NOT NULL) AS owned'
@@ -21,13 +22,14 @@ router.get('/', async function (req, res, next) {
       [userId]
     );
 
-    // 0.6v 현재 대표 캐릭터 id — 뷰에서 "대표" 뱃지 표시에 사용
+    // * 0.6v 현재 대표 캐릭터 id — 뷰에서 "대표" 뱃지 표시에 사용
     var [meRows] = await pool.query(
       'SELECT current_character_id FROM users WHERE id = ?',
       [userId]
     );
     var currentCharacterId = meRows[0] ? meRows[0].current_character_id : null;
 
+    // 통계
     var owned = rows.filter(function (r) { return r.owned; }).length;
     var total = rows.length;
     var percent = total > 0 ? Math.round((owned / total) * 100) : 0;

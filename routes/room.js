@@ -18,7 +18,7 @@ router.get('/', async function (req, res, next) {
       );
     var currentRoomId = userRows[0] ? userRows[0].current_room_id : null; //SELECT 했던 컬럼명과 같게
 
-    // 2) 방 결정 — NULL 이면 로비, 값 있으면 그 private 방
+    //! 2) 방 결정 — host_user_id가 NULL 이면 로비, 값 있으면 그 private 방
     var roomRows;
     if (currentRoomId === null) {
         // 로비: 공용 라이브러리 (host 없는 기본 공용 방)
@@ -51,7 +51,7 @@ router.get('/', async function (req, res, next) {
     var occMap = {};
     occupied.forEach(function (r) { occMap[r.seat_number] = r; });
 
-    // 3) 12석 배열 구성
+    // 3) 12석 배열 구성 - DB에서 가져온단 마인드
     var seats = [];
     for (var i = 1; i <= room.capacity; i++) {
       var o = occMap[i];
@@ -86,7 +86,7 @@ router.get('/', async function (req, res, next) {
     );
     var egg = eggRows[0]
       ? { progress: eggRows[0].progress_seconds, required: eggRows[0].required_seconds }
-      : { progress: 0, required: 60 }; // TODO(시연): 보고서대로면 600
+      : { progress: 0, required: 60 }; // TODO(시연): 60초
 
     var [todayRows] = await pool.query(
       'SELECT COALESCE(SUM(duration), 0) AS sec, COUNT(*) AS cnt'
@@ -174,7 +174,7 @@ router.get('/members', async function (req, res, next) {
   }
 });
 
-// POST /room/create 처리 - 방 생성
+//! POST /room/create 처리 - 방 생성
 router.post('/create', async function (req, res, next){
   try{
     if (!req.session.user) return res.redirect('/auth/login');
@@ -206,7 +206,7 @@ router.post('/create', async function (req, res, next){
   }
 });
 
-// POST /room/join 처리 - 초대코드로 입장
+//! POST /room/join 처리 - 초대코드로 입장 (초대 코드 검증)
 router.post('/join', async function (req, res, next) {
   try{
     if(!req.session.user) return res.redirect('/auth/login');
@@ -292,6 +292,7 @@ router.post('/group/start', async function (req, res, next) {
     // 4) 방 전체에 시작 신호 브로드캐스트 (이것도 study.js line 60, 69 참조)
     var io = req.app.get('io');
     if (io) io.to('room-' + roomId).emit('groupStart', {});
+    //* 소켓으로 신호를 쏘면 - 각 멤버 클라이언트가 신호 받음 - 자 자기 브라우저에서 /study/start POST를 쏨
 
     // 5) 응답
     res.json({ok: true});
@@ -324,7 +325,7 @@ router.post('/group/end', async function (req, res, next) {
       return res.status(403).json({ ok: false, message: '방장만 가능합니다.' });
     }
 
-    // 4) 방 전체에 종료 신호 브로드캐스트
+    //* 4) 방 전체에 종료 신호 브로드캐스트
     var io = req.app.get('io');
     if (io) io.to('room-' + roomId).emit('groupEnd', {});
 

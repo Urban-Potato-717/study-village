@@ -37,7 +37,7 @@ router.get('/', async function (req, res, next) {
     );
     var egg = eggRows[0]
       ? { progress: eggRows[0].progress_seconds, required: eggRows[0].required_seconds }
-      : { progress: 0, required: 60 }; // TODO(시연): 보고서대로면 600
+      : { progress: 0, required: 60 }; // TODO(시연): 60초
 
     // 4) 도감 진행도
     var [dexRows] = await pool.query(
