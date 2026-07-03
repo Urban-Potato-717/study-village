@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS rooms (
   id         INT         NOT NULL AUTO_INCREMENT,
   name       VARCHAR(50) NOT NULL,
-  capacity   INT         NOT NULL DEFAULT 6,               -- 좌석 수 (기본 6석)
+  capacity   INT         NOT NULL DEFAULT 6,               -- * 좌석 수 (기본 6석)
   created_at DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   host_user_id INT       NULL, -- 방장의 user.id (NULL = 로비/공용방이 있기에 빈값 허용)
   invite_code VARCHAR(6) NULL, -- 초대 코드 6자리 (NULL = 이것도 로비/공용방)
@@ -61,7 +61,7 @@ WHERE NOT EXISTS (
   SELECT 1 FROM rooms WHERE name = '1번 학습방'
 );
 
--- 0.2v에서 좌석 수를 12석으로 늘림 (기존에 6석으로 만들어진 행이 있어도 12로 갱신)
+-- * 로비 좌석 수를 12석으로 늘림 (기존에 6석으로 만들어진 행이 있어도 12로 갱신)
 UPDATE rooms SET capacity = 12 WHERE name = '1번 학습방' AND capacity <> 12;
 
 -- 캐릭터 마스터 (도감 전체 목록) Table
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS user_characters (
 CREATE TABLE IF NOT EXISTS eggs (
   id               INT      NOT NULL AUTO_INCREMENT,
   user_id          INT      NOT NULL,
-  required_seconds INT      NOT NULL DEFAULT 60,   -- demo version time, 60sec
+  required_seconds INT      NOT NULL DEFAULT 60,   --TODO 시연 버전에서는 60초 후 부활
   progress_seconds INT      NOT NULL DEFAULT 0,
   is_active        BOOLEAN  NOT NULL DEFAULT TRUE,
   created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -131,7 +131,6 @@ CREATE TABLE IF NOT EXISTS seat_occupancy (
 -- ! 혼자 개발해서 마이그레이션 기능은 삭제함.
 
 -- 캐릭터 시드 9종 (Kenney Tiny Dungeon 스프라이트)
--- WHERE NOT EXISTS 로 멱등성 확보
 -- rarity: N 4종 / R 4종 / SR 1종, drop_weight: N=100 R=40 SR=20
 INSERT INTO characters (name, image_path, emoji, rarity, drop_weight)
 SELECT '농부', '/images/characters/farmer.png', '🌾', 'N', 100

@@ -1,5 +1,5 @@
 // routes/records.js
-// 공부 기록 조회 + 도감 진행도 + 활성 알 진행도 (MVP 통합)
+// 공부 기록 조회 + 도감 진행도 + 활성 알 진행도
 
 var express = require('express');
 var router  = express.Router();
@@ -29,7 +29,7 @@ router.get('/', async function (req, res, next) {
     );
     var totalSeconds = (userRows[0] && userRows[0].total_study_seconds) || 0;
 
-    // 3) 활성 알
+    //* 3) 활성 알
     var [eggRows] = await pool.query(
       'SELECT required_seconds, progress_seconds FROM eggs'
       + ' WHERE user_id = ? AND is_active = TRUE ORDER BY id ASC LIMIT 1',
@@ -37,7 +37,7 @@ router.get('/', async function (req, res, next) {
     );
     var egg = eggRows[0]
       ? { progress: eggRows[0].progress_seconds, required: eggRows[0].required_seconds }
-      : { progress: 0, required: 60 }; // TODO(시연): 보고서대로면 600
+      : { progress: 0, required: 60 }; // TODO(시연): 60초
 
     // 4) 도감 진행도
     var [dexRows] = await pool.query(

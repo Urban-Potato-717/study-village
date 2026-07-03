@@ -18,6 +18,12 @@ app.set('view engine', 'ejs');                   // EJS 템플릿 엔진 선언
 // 요청(req) → [미들웨어1] → [미들웨어2] → [라우터] → 응답(res)
 app.use(morgan('dev')); // HTTP 요청 로그를 콘솔에 출력
 
+// 모든 응답에 캐시 비활성화 (EJS 렌더링 페이지 포함)
+app.use(function (req, res, next) {
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
+
 //! paser: 브라우저가 보낸 요청 데이터를 Express가 읽기 좋게 바꿔주는 미들웨어
 app.use(express.json());                            // JSON body를 req.body로 읽게 해줌
 app.use(express.urlencoded({ extended: false }));   // HTML form body를 req.body로 읽게 해줌
@@ -28,7 +34,7 @@ app.use(cookieParser(process.env.SESSION_SECRET));  // Cookie 헤더를 req.cook
 // (강력 새로고침 없이도 js/css 변경이 바로 반영되게 함)
 app.use(express.static(path.join(__dirname, 'public'), {
   etag: true,
-  setHeaders: function (res) { res.setHeader('Cache-Control', 'no-cache'); },
+  setHeaders: function (res) { res.setHeader('Cache-Control', 'no-store'); },
 }));
 
 app.use(session({           // express-session: 서버가 특정 브라우저/사용자에 대해 기억해두는 임시 저장소

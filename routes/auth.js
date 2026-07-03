@@ -1,15 +1,15 @@
-// routes/auth.js
-// express.Router()로 라우터 객체 생성 → 라우팅 분리
+// 1. 로그인 + 회원가입 페이지 렌더링 및 처리
+// 2. (rng.js) 첫 알 자동 지급 + 추첨 + 도감 등록 + 대표 세팅
+// 3. 로그아웃 및 탈퇴 처리 (DELETE FROM)
+// express.Router()로 라우터 객체 생성 -> 라우팅 분리를 시켜줌
 
 var express = require('express');
 var router  = express.Router();
-var pool = require('../db/connection'); // 필요 시 주석 해제하여 DB 사용
+var pool = require('../db/connection');
 var crypto  = require('crypto');
-// MVP: 회원가입 시 알 지급 + N등급 캐릭터 자동 추첨에 사용
 var rng = require('../lib/rng');
 
 // GET /auth/login - 로그인 페이지 렌더링
-// authRouter 안에서 /login GET 요청을 처리하겠다
 router.get('/login', function (req, res, next) {
     res.render('login', { message: req.flash('error') });
 });
@@ -46,8 +46,7 @@ router.post('/login', async function (req, res, next) {
             nickname: user.nickname
         };
 
-        // 메인 화면이나 로비로 이동
-        // 추후 리다이렉션 위치 수정 필요
+        // 메인 화면으로 이동
         res.redirect('/'); 
 
     } catch (err) {
@@ -55,7 +54,7 @@ router.post('/login', async function (req, res, next) {
     }
 });
 
-// GET /auth/register - 회원가입 페이지
+// GET /auth/register - 회원가입 페이지 렌더링
 router.get('/register', function (req, res, next) {
     res.render('register');
 });
@@ -66,7 +65,7 @@ router.post('/register', async function (req, res, next) {
         // 1) req.body에서 username, password, nickname 받기
         const { username, password, nickname } = req.body;
 
-        // [추가 항목] 아이디 중복 체크
+        // * [추가 항목] 아이디 중복 체크
         const [existUser] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
         if (existUser.length > 0) {
             return res.send('<script>alert("이미 존재하는 아이디입니다."); history.back();</script>');
@@ -82,15 +81,16 @@ router.post('/register', async function (req, res, next) {
         );
         const newUserId = insertResult.insertId;
 
-        // ─── MVP: 첫 알 1개 + N등급 캐릭터 1장 자동 지급 ───
-        // 알: 활성(is_active=TRUE) 상태로 즉시 등록 → 첫 공부 종료부터 부화 진행도 증가
-        // TODO: 부화 시간은 60초(데모용). 보고서대로면 600초(10분)로 되돌릴 것.
+        //! 첫 알 1개 + N등급 캐릭터 1장 자동 지급
+        // * 알은 처음에 활성(is_active=TRUE) 상태로 즉시 등록 -> 첫 공부 종료부터 부화 진행도 증가 *
+        // TODO: 부화 시간은 60초(데모용) 실제 서비스 운영 시 조정할 것
         await pool.query(
             'INSERT INTO eggs (user_id, required_seconds, is_active) VALUES (?, 60, TRUE)',
             [newUserId]
         );
 
-        // N등급 캐릭터에서 가중치 랜덤 1장 추첨 → 도감 등록 + 현재 캐릭터로 세팅
+        // * N등급 캐릭터에서 가중치 랜덤 1장 추첨 → 도감 등록 + 현재 캐릭터로 세팅 *
+        // { rarityIn: ['N'] }을 "rng.js로 보내 처리한다."
         const starter = await rng.pickWeightedCharacter(pool, { rarityIn: ['N'] });
         if (starter) {
             await rng.grantCharacterAndMaybeRefreshCurrent(pool, newUserId, starter.id);
