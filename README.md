@@ -4,16 +4,22 @@
 
 > 팀원 대상 개발 환경 설정 및 협업 안내는 [docs/TEAM_GUIDE.md](docs/TEAM_GUIDE.md)를 참고하세요.
 
+## 프로젝트 상태
+
+- 최종 통합 브랜치: `main`
+- 구현 범위: 회원 관리, 공부방, 실시간 좌석, 학습 타이머, 기록, 알 부화, 캐릭터 도감
+- 현재 설정: 수업 발표와 기능 시연을 위한 데모 시간 적용
+
 ## 주요 기능
 
 - 회원가입, 로그인, 로그아웃, 회원 탈퇴
-- 공용 로비와 초대코드 기반 개인 공부방
-- 12석 좌석 선택과 Socket.IO 기반 실시간 좌석 상태 동기화
+- 12석 공용 로비와 초대코드 기반 6석 개인 공부방
+- 좌석 선택, 중복 점유 방지와 Socket.IO 기반 실시간 상태 동기화
 - 개인 스톱워치 타이머와 데모용 포모도로 타이머
-- 방장 전용 전체 시작/전체 종료 신호
+- 개인 공부 상태 표시와 방장 전용 전체 시작/전체 종료
 - 공부 세션 기록, 오늘/누적 공부 시간, 최근 기록 조회
-- 공부 시간 기반 알 부화와 캐릭터 랜덤 획득
-- 캐릭터 도감, 획득 진행도, 대표 캐릭터 변경
+- 공부 시간 기반 알 부화와 등급별 가중치 랜덤 캐릭터 획득
+- 9종 캐릭터 도감, 획득 진행도, 대표 캐릭터 선택과 학습방 실시간 반영
 
 ## 기술 스택
 
@@ -44,7 +50,10 @@ study-village/
 │  └─ images/             # 캐릭터와 타일 이미지
 ├─ routes/                # 기능별 Express 라우터
 ├─ socket/socket.js       # Socket.IO 이벤트 처리
-└─ views/                 # EJS 화면 템플릿
+├─ views/                 # EJS 화면 템플릿
+├─ docs/TEAM_GUIDE.md     # 팀 개발 환경 및 Git 협업 안내
+├─ .env.example           # 환경변수 예시
+└─ package.json           # 실행 스크립트와 의존성
 ```
 
 ## 실행 준비
@@ -67,6 +76,12 @@ Windows CMD에서는 다음 명령을 사용할 수 있습니다.
 
 ```cmd
 copy .env.example .env
+```
+
+Windows PowerShell에서는 다음 명령을 사용할 수 있습니다.
+
+```powershell
+Copy-Item .env.example .env
 ```
 
 필수 값:
@@ -128,25 +143,25 @@ http://localhost:3000
 
 ## 화면과 라우트
 
-| 경로 | 설명 |
-|---|---|
-| `/` | 메인 화면 |
-| `/auth/register` | 회원가입 |
-| `/auth/login` | 로그인 |
-| `/auth/logout` | 로그아웃 |
-| `/auth/withdraw` | 회원 탈퇴 |
-| `/room` | 로비 또는 현재 공부방 |
-| `/room/create` | 공부방 생성 |
-| `/room/join` | 초대코드로 공부방 입장 |
-| `/room/leave` | 개인 공부방에서 로비로 이동 |
-| `/room/members` | 현재 방 인원 JSON |
-| `/room/group/start` | 방장 전체 시작 신호 |
-| `/room/group/end` | 방장 전체 종료 신호 |
-| `/study/start` | 공부 세션 시작 API |
-| `/study/end` | 공부 세션 종료 API |
-| `/records` | 내 공부 기록 |
-| `/characters` | 캐릭터 도감 |
-| `/characters/select` | 대표 캐릭터 변경 API |
+| 메서드 | 경로 | 설명 |
+|---|---|---|
+| `GET` | `/` | 메인 화면 |
+| `GET`, `POST` | `/auth/register` | 회원가입 화면과 처리 |
+| `GET`, `POST` | `/auth/login` | 로그인 화면과 처리 |
+| `GET` | `/auth/logout` | 로그아웃 |
+| `POST` | `/auth/withdraw` | 회원 탈퇴 |
+| `GET` | `/room` | 공용 로비 또는 현재 개인 공부방 |
+| `POST` | `/room/create` | 개인 공부방 생성 |
+| `POST` | `/room/join` | 초대코드로 개인 공부방 입장 |
+| `POST` | `/room/leave` | 개인 공부방에서 로비로 이동 |
+| `GET` | `/room/members` | 현재 방 인원 JSON |
+| `POST` | `/room/group/start` | 방장 전체 시작 신호 |
+| `POST` | `/room/group/end` | 방장 전체 종료 신호 |
+| `POST` | `/study/start` | 공부 세션 시작 API |
+| `POST` | `/study/end` | 공부 세션 종료 API |
+| `GET` | `/records` | 내 공부 기록 |
+| `GET` | `/characters` | 캐릭터 도감 |
+| `POST` | `/characters/select` | 대표 캐릭터 변경 API |
 
 ## 데이터 흐름
 
@@ -158,6 +173,13 @@ http://localhost:3000
 6. 알이 요구 시간을 채우면 캐릭터가 가중치 기반으로 추첨되어 `user_characters`에 등록되고, 다음 알이 자동 지급됩니다.
 7. 도감에서 보유한 캐릭터를 선택하면 `users.current_character_id`가 변경되고 학습방 화면에도 실시간 반영됩니다.
 
+## 실시간 동기화
+
+- 사용자는 학습방에 들어오면 `room-{roomId}` Socket.IO 채널에 참가합니다.
+- 좌석 선택과 해제, 공부·휴식 상태, 대표 캐릭터 변경이 같은 방 사용자에게 전달됩니다.
+- 개인 공부방의 방장은 전체 시작·종료 이벤트를 보낼 수 있으며, 각 참여자의 클라이언트가 자신의 공부 세션 API를 호출합니다.
+- 좌석 점유 정보는 `seat_occupancy` 테이블에 저장되며, 연결 종료 시 해당 좌석을 정리합니다.
+
 ## 현재 데모 설정
 
 시연 편의를 위해 일부 시간이 짧게 설정되어 있습니다.
@@ -165,6 +187,7 @@ http://localhost:3000
 - 알 부화 시간: 60초
 - 포모도로 공부 시간: 10초
 - 포모도로 휴식 시간: 5초
+- 캐릭터 등급별 추첨 가중치: N 100, R 40, SR 20
 
 운영용에 가깝게 바꾸려면 다음 파일의 상수를 조정합니다.
 
@@ -176,8 +199,11 @@ http://localhost:3000
 
 - 현재 비밀번호는 Node.js `crypto`의 SHA-512 해시로 저장됩니다. 실제 서비스라면 `bcrypt` 같은 password hashing 전용 라이브러리 적용이 필요합니다.
 - 세션 저장소는 기본 메모리 저장소입니다. 배포 환경에서는 Redis, DB 기반 session store 등으로 교체해야 합니다.
+- 세션 쿠키의 `secure` 옵션은 로컬 HTTP 실행을 위해 `false`입니다. HTTPS 배포 시 `true`로 변경해야 합니다.
 - DB 마이그레이션 도구는 포함되어 있지 않습니다. 스키마 변경 시 `db/schema.sql`과 기존 데이터 반영 방법을 함께 관리해야 합니다.
 - 도감 부화 축하 효과는 CDN의 `canvas-confetti`를 사용하므로 오프라인 환경에서는 폭죽 효과가 표시되지 않을 수 있습니다.
+- Galmuri 웹폰트도 jsDelivr CDN을 사용하므로 오프라인에서는 대체 글꼴로 표시될 수 있습니다.
+- 자동화 테스트 스크립트는 아직 포함되어 있지 않습니다. 변경 후 로그인, 방 입장, 좌석 선택, 타이머 종료와 캐릭터 반영 흐름을 직접 확인해야 합니다.
 
 ## 자주 발생하는 문제
 
